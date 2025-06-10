@@ -1,0 +1,196 @@
+Perkembangan industri fashion, terutama dalam konteks fast fashion, telah menyebabkan peningkatan produksi tekstil secara signifikan. Akibatnya, volume limbah tekstil pun mengalami kenaikan yang dramatis. Limbah tekstil tidak hanya terbatas pada akumulasi di tempat pembuangan tetapi juga tersebar ke lingkungan perairan, khususnya ke laut. Di perairan tersebut, sampah tekstil sering kali bercampur dengan sampah organik, plastik, dan limbah logam. Kondisi ini mengakibatkan proses pemilahan menjadi sangat sulit karena tekstil yang basah dan tertutup pasir serta lumpur tidak mudah dipisahkan atau didaur ulang untuk menghasilkan serat tekstil berkualitas, misalnya polyester dan microfiber.
+Kajian sebelumnya, seperti yang dilakukan oleh Wikiandy, Rosidah, dan Titin Herawati (2013) dalam jurnal "Dampak Pencemaran Limbah Industri Tekstil Terhadap Kerusakan Struktur Organ Ikan di DAS Citarum Bagian Hulu", menunjukkan bagaimana limbah industri tekstil yang tercemar logam berat (misalnya kromium) dapat merusak biota perairan. Meskipun penelitian tersebut fokus pada lingkungan sungai dan dampaknya terhadap kesehatan ikan, permasalahan pencemaran limbah tekstil juga sangat relevan di lingkungan laut, mengingat kondisi akumulasi sampah yang serupa dan dampaknya terhadap ekosistem pesisir.
+Di sisi lain, kemajuan dalam teknologi pengolahan citra digital memberikan peluang untuk mencari solusi inovatif dalam pengelolaan sampah. Salah satunya adalah dengan menerapkan metode konvolusi 2D yang mampu mengenali pola dan fitur khas pada sampah tekstil, seperti pola kain, tekstur serat, serta perbedaan warna. Pendekatan ini tidak mengandalkan algoritma deep learning (misalnya CNN) sehingga dapat menjadi alternatif praktis berbasis pemrosesan citra tradisional. Dengan demikian, metode ini diharapkan dapat membantu proses pemilahan sampah dengan lebih efektif, terutama untuk sampah tekstil yang bercampur dengan sampah non-tekstil di perairan laut.
+
+
+
+
+1.2.	Rumusan Masalah
+Berdasarkan latar belakang yang telah dijelaskan, dirumuskan beberapa permasalahan utama, yaitu:
+a.	Bagaimana metode konvolusi 2D dapat diaplikasikan untuk mengenali ciri khas tekstil, seperti pola, serat, dan warna pada kondisi sampah yang telah bercampur dengan sampah organik, plastik, dan limbah logam di laut?
+b.	Sejauh mana teknik pengolahan citra berbasis konvolusi 2D efektif dalam membantu proses pemilahan sampah tekstil dari sampah non-tekstil di lingkungan laut yang tercemar?
+
+1.3.	Tujuan
+Adapun tujuan dalam penulisan laporan ini adalah sebagai berikut:
+a.	Mengembangkan dan mengimplementasikan teknik pengolahan citra berbasis konvolusi 2D guna mengenali dan mengidentifikasi ciri khas tekstil, khususnya dalam kondisi sampah yang basah dan bercampur dengan material lain di perairan laut.
+b.	Menilai efektivitas metode konvolusi 2D tersebut dalam memisahkan sampah tekstil dari sampah jenis lainnya, sehingga proses daur ulang dapat dilakukan secara lebih optimal.
+c.	Menyediakan solusi alternatif untuk pengelolaan sampah laut yang bertujuan mengurangi dampak negatif sampah tekstil terhadap biota laut dan ekosistem pesisir.
+
+1.4.	Manfaat
+Adapun manfaat yang dapat disediakan oleh laporan ini adalah sebagai berikut:
+a.	Menambah pengetahuan mengenai aplikasi teknik konvolusi 2D dalam pengolahan citra untuk identifikasi sampah tekstil.
+b.	Menjadi referensi dasar dalam pengembangan metode pemrosesan citra non-deep learning untuk permasalahan lingkungan, khususnya dalam konteks pengelolaan sampah laut.
+c.	Memberikan solusi praktis dalam proses pemilahan sampah di perairan laut, sehingga sampah tekstil yang sulit dipisahkan dapat didaur ulang dengan lebih efisien.
+d.	Mendukung upaya pengelolaan sampah dan konservasi ekosistem laut dengan mengurangi akumulasi sampah yang dapat merusak biota pesisir.
+e.	Menjadi dasar bagi pengembangan sistem monitoring dan manajemen sampah berbasis pengolahan citra digital yang dapat diintegrasikan dalam sistem pengelolaan lingkungan. 
+4.	BAB II 
+TINJAUAN PUSTAKA
+
+1.	2.1.	Pengolahan Citra Digital
+	Pengolahan citra digital merupakan proses pengolahan gambar secara digital melalui penggunaan komputer. Dengan kata lain, pengolahan citra digital menggunakan algoritma komputer untuk mendapatkan gambar yang disempurnakan atau mengekstrak berbagai informasi berguna. Tujuan utama dari pengolahan citra digital adalah memproses dan memanipulasi citra digital untuk berbagai keperluan.  
+
+2.	2.2.	Teknik Konvolusi 2D
+	Konvolusi adalah operator matematika yang penting untuk banyak operator dalam image processing. Konvolusi menyediakan cara untuk menggabungkan dua array, biasanya untuk ukuran array yang berbeda, tetapi untuk dimensi array yang sama, menghasilkan array ketiga yang mempunyai dimensi yang sama. Konvolusi dapat digunakan dalam image processing untuk menerapkan operator yang mempunyai nilai output dari piksel yang berasal dari kombinasi linear nilai input piksel tertentu. 
+	Konvolusi citra adalah teknik untuk menghaluskan suatu citra atau memperjelas citra dengan menggantikan nilai piksel dengan sejumlah nilai piksel yang sesuai atau berdekatan dengan piksel aslinya. Tetapi dengan adanya konvolusi, ukuran dari citra tetap sama, tidak berubah.
+	Konvolusi memiliki dua buah fungsi f(x) dan g(x) yang didefinisikan sebagai berikut:
+ 
+  
+yang dalam hal ini, tanda (*) menyatakan operator konvolusi dan peubah (variabel)   adalah peubah bantu. 
+	Untuk pengolahan citra, operasi yang dilakukan adalah diskrit karena nilai koordinat piksel merupakan nilai yang diskrit. Selanjutnya filter atau mask yang digunakan pada pengolahan citra biasanya berukuran terbatas, dalam artian bobot atau pengaruh dari titik-titik yang cukup jauh sudah tidak signifikan, sehingga dapat diabaikan (dianggap nol).
+	Bentuk diskrit dari operasi konvolusi satu dimensi pada pengolahan citra adalah:
+ 
+Untuk fungsi dengan dua dimensi, operasi konvolusi didefinisikan sebagai berikut:
+Untuk fungsi integral: 
+ 
+	Untuk fungsi diskrit:
+ 
+
+Fungsi penapis g(x,y) disebut juga konvolusi filter, konvolusi mask, konvolusi kernel, atau template. Dalam bentuk diskrit konvolusi kernel dinyatakan dalam bentuk matriks (umumnya matriks 3x3). Ukuran matriks ini biasanya lebih kecil dari ukuran citra. Setiap elemen matriks disebut koefisien konvolusi.
+Ilustrasi konvolusi ditunjukkan pada Gambar dibawah ini.
+ 
+Gambar Ilustrasi Konvolusi (Rinaldi Munir, 2004, p79).
+f(i,j) = Ap1 + Bp2 + Cp3 + Dp4 + Ep5 + Fp6 + Gp7 + Hp8 + Ip9
+
+
+3.	2.3.	Ciri-Ciri Visual Sampah Tekstil
+ 	Ciri-ciri limbah tekstil di perairan laut
+5.	Warna mencolok atau pudar tidak alami
+a.	Kain bekas sering berwarna merah, biru, kuning, atau memiliki pola (batik, garis, floral), berbeda dengan warna alami laut.
+b.	Ada juga limbah tekstil berwarna kusam akibat terpapar air laut dan sinar matahari.
+6.	Tekstur dan bentuk tidak beraturan
+a.	Tekstur kasar atau kusut (tergulung, robek, berjumbai).
+b.	Bentuk bisa berupa serpihan, gulungan benang, potongan kain, atau helaian pakaian rusak.
+7.	Material menyerap air
+a.	Kain akan terlihat berat dan tenggelam sebagian, tidak selalu mengambang penuh seperti plastik.
+b.	Serat-serat bisa terlihat terurai di sekitar potongan utama.
+8.	Ukuran bervariasi
+a.	Mulai dari benang-benang kecil hingga potongan kain besar seperti baju atau sprei.
+9.	Sering tersangkut atau menempel
+a.	Bisa tersangkut di karang, tumbuhan laut, atau mengapung bersama sampah lain.
+b.	Kadang menempel pada hewan laut atau jaring ikan.
+
+Ciri-Ciri Limbah Tekstil Polyester dan Microfiber di Laut
+	Polyester : 
+4.	Bahan: Serat sintetis berbasis plastik (PET – polyethylene terephthalate).
+5.	Ciri visual : 
+a.	Cenderung mengkilap, terutama saat basah.
+b.	Tidak menyerap air, sehingga lebih mengapung daripada kain katun.
+c.	Warna lebih awet dan tidak mudah pudar meskipun terendam laut.
+d.	Potongan tipis bisa melayang di air seperti plastik.
+e.	Ujung-ujung sobekan tidak mudah terurai seperti serat alami.
+6.	Masalah lingkungan : Tahan lama dan sulit terurai, sering menjadi mikroplastik.
+
+	Microfiber
+1.	Bahan: Campuran polyester dan polyamide (nylon).
+2.	Ciri visual:
+a.	Lembut dan sangat halus, dengan serat mikroskopis.
+b.	Biasanya berwarna cerah (biru muda, pink, hijau stabilo).
+c.	Saat basah, menempel seperti tisu atau lap.
+d.	Mudah terbelah menjadi potongan mikroskopis (microfiber < 5 mm), tidak selalu terlihat jelas oleh kamera biasa.
+3.	Masalah lingkungan: Lepasan serat mikro (microfiber shedding) dari pakaian saat dicuci masuk ke laut dan mencemari ekosistem.
+
+7.	2.4.	Cara Kerja Konvolusi 2D pada Deteksi Polyester & Microfiber
+1.	Input: Citra Laut yang Tercemar
+Citra berisi objek campuran seperti air, plastik, alga, dan limbah tekstil (polyester/microfiber). Warna, tekstur, dan bentuk menjadi informasi utama.
+2.	Proses Konvolusi
+Sebuah kernel 2D (misalnya 3×3 atau 5×5) akan:
+a.	Bergerak (slide) ke seluruh bagian gambar.
+b.	Melakukan perkalian elemen per elemen (element-wise multiplication) antara nilai piksel dan kernel.
+c.	Menjumlahkan hasilnya sebagai nilai baru di lokasi output.
+3.	Efek pada Polyester
+a.	Polyester memiliki:
+i.	Tepi yang tajam dan bentuk tegas.
+ii.	Warna cerah dan mengkilap.
+b.	Konvolusi 2D dengan kernel deteksi tepi (contoh: Sobel dan Laplacian) akan menyoroti perbedaan kontras antara kain polyester dan air laut.
+c.	Kernel deteksi tekstur dapat memisahkan pola buatan (seperti garis atau motif) dari latar laut alami.
+4.	Efek pada Microfiber
+a.	Microfiber:
+i.	Serat sangat halus dan mikroskopis.
+ii.	Sering muncul sebagai noise, bintik, atau lapisan tipis di air.
+b.	Konvolusi 2D bisa:
+i.	Menggunakan kernel kecil (misal: 3×3) untuk mendeteksi struktur mikro atau noise berulang.
+ii.	Fokus pada perbedaan kecerahan atau warna lemah antara microfiber dan latar belakang.
+iii.	Menggunakan layer awal CNN untuk menangkap fitur halus dan samar.
+ 
+11.	BAB III 
+METODOLOGI 
+8.	3.1 Desain Sistem 
+Metode yang digunakan dalam penelitian ini bertujuan untuk mengidentifikasi sampah tekstil di perairan laut tercemar melalui pendekatan pengolahan citra digital berbasis konvolusi dua dimensi (2D). Sistem ini terdiri dari lima tahapan utama: akuisisi citra, pra-pemrosesan, penerapan filter konvolusi 2D, visualisasi hasil, dan evaluasi.
+Menurut Gonzalez & Woods (2018), konvolusi 2D merupakan operasi linier antara matriks piksel dari citra dan kernel (filter), yang bertujuan mengekstraksi fitur spasial seperti tepi, pola tekstur, atau bentuk objek. Pendekatan ini sangat efektif dalam mengolah citra secara lokal, sehingga cocok digunakan untuk mendeteksi karakteristik visual khas dari kain tekstil seperti garis pola, arah serat, atau jahitan, tanpa perlu pelatihan model seperti pada metode deep learning.
+Konvolusi seringkali dilibatkan dalam operasi ketetanggaan piksel.Konvolusi pada citra sering disebut sebagai konvolusi dua-dimensi (konvolusi 2D). Konvolusi 2D didefinisikan sebagai proses untuk memperoleh suatu piksel didasarkan pada nilai piksel itu sendiri dan tetangganya, dengan melibatkan suatu matriks yang disebut kernel yang merepresentasikan pembobotan. Wujud kernel umumnya bujur sangkar, tetapi dapat pula berbentuk persegi panjang.Gambar dibawah menunjukkan contoh kernel untuk konvolusi.
+ 
+9.	3.2 Akuisisi  dan Dataset
+Dataset citra diperoleh dari dokumentasi citra perairan tercemar yang mengandung berbagai jenis limbah, khususnya tekstil. Pengumpulan data mempertimbangkan keragaman kondisi lingkungan seperti pencahayaan, kejelasan air, dan tingkat kehomogenan latar belakang. Citra yang digunakan memiliki resolusi minimal 512x512 piksel dalam format JPEG dan PNG.
+Menurut Lim (1990), kualitas citra masukan sangat menentukan hasil dari proses pengolahan selanjutnya. Citra dengan noise tinggi atau kontras rendah dapat menurunkan kemampuan filter konvolusi dalam mengekstraksi fitur. Oleh karena itu, pemilihan citra didasarkan pada keberadaan fitur visual yang menonjol seperti pola kain, tekstur serat, atau perbedaan warna terhadap latar belakang laut.
+Penelitian ini menggunakan pendekatan tidak berlabel (unsupervised), di mana anotasi atau pelatihan model tidak digunakan. Hal ini menekankan kekuatan pendekatan berbasis pemrosesan citra murni untuk deteksi awal sebelum tahap klasifikasi lanjutan.
+10.	3.3 Pra-Pemrosesan
+Pra-pemrosesan bertujuan untuk meningkatkan kualitas citra dan mempermudah proses konvolusi dalam mengekstraksi fitur visual. Langkah-langkah pra-pemrosesan meliputi: 
+●	Konversi Grayscale : Mengubah citra berwarna menjadi skala abu-abu agar pemrosesan lebih sederhana dan fokus pada intensitas piksel. Sezgin dan Sanku (2004) menyatakan bahwa pengolahan pada citra grayscale lebih efisien dalam mendeteksi struktur visual seperti tepi dan tekstur.
+●	Pengurangan Noise : Menggunakan median filter untuk menghilangkan noise impulsif yang sering muncul pada citra laut, seperti pantulan cahaya dan partikel tersuspensi. Filter ini mempertahankan tepi sambil mengurangi distorsi lokal.
+●	Histogram Equalization : Digunakan untuk memperbaiki kontras citra, terutama dalam kondisi pencahayaan rendah. Teknik ini mendistribusikan intensitas piksel secara merata, membuat fitur tekstil lebih tampak menonjol terhadap latar belakang.
+11.	3.4 Penerapan Konvolusi 2D
+Operasi konvolusi 2D dilakukan dengan menggeser kernel filter di atas citra dan menghitung nilai dot product antara kernel dan patch piksel citra. Filter ini dirancang untuk menyoroti pola tertentu seperti tepi, sudut, atau tekstur. Pemilihan filter yang tepat bergantung pada tujuan identifikasi visual yang diinginkan.
+3.4.1. Sobel Filter 
+Menurut Irwin Sobel pada tahun 1970, Operator deteksi tepi ini identik dengan bentuk matriks 3x3 atau jendela ukuran 3x3 piksel. Operator Sobel melakukan perhitungan secara 2D terhadap suatu ruang di dalam sebuah citra . Sobel adalah filter deteksi tepi yang memperhitungkan gradien horizontal dan vertikal. Filter ini banyak digunakan untuk memperjelas kontur objek karena mampu menekan noise ringan.
+Zhang et al. (2010) menunjukkan bahwa Sobel efektif untuk mendeteksi arah dan tepi pada kain, yang memiliki struktur linear yang khas. Filter ini mampu menangkap batas lipatan, serat, dan kontur yang membedakan tekstil dari plastik atau daun laut.
+Metode Sobel merupakan pengembangan dari metode Robert yang menggunakan operator gradien, akan tetapi matriks yang digunakan berukuran 3x3 piksel yang ditunjukkan pada persamaan. Metode Sobel dilakukan dengan cara mengkonvolusi citra grayscale dengan matriks Sobel ke arah horizontal (H) dan vertikal (V).
+ 
+Piksel diubah ke dalam matriks seperti pada persamaan :
+ 
+f(x,y) = ukuran piksel citra dalam matriks 𝑎𝑛 = nilai piksel pada matriks (x,y) = nilai piksel baru hasil konvolusi Konvolusi matriks metode Sobel dilakukan dengan persamaan (9) dan persamaan (10): Gx=(a2 + 2a3 + a4 ) - (a0 + 2a7 + a6 ) (9) dan Gy = (a0 + 2a1 + a2 ) - (a6 + 2a5 + a4 ) 
+Selanjutnya, dihitung besaran gradien dengan persamaan : 
+ 
+Dimana : 
+G = nilai pada piksel (x,y)
+Gx = Matriks sobel arah horizontal 
+Gy = Matriks sobel arah vertikal
+3.4.2 Prewitt Filter 
+Prewitt serupa dengan Sobel, namun menggunakan distribusi bobot yang lebih sederhana. Meskipun cenderung menghasilkan tepi yang lebih tajam, ia juga lebih sensitif terhadap noise dibanding Sobel.
+Metode Prewitt tidak jauh berbeda dengan metode Sobel yang menggunakan operator gradien dengan matriks berukuran 3x3 piksel pada persamaan. Metode Prewitt dilakukan dengan cara mengkonvolusi citra grayscale dengan matriks Prewitt arah horizontal dan vertikal. 
+ 
+Konvolusi matriks metode Prewitt dilakukan dengan persamaan : 
+GX=(a2 + a3 + a4 ) - (a0 + 2a7 + a6 ) (13) dan Gy = (a0 + a1 + a2 ) - (a6 + a5 + a4 ) (14) Selanjutnya, dihitung besaran gradien dengan persamaan berikut: 
+ 
+Dimana : 
+G = Nilai gradien atau nilai pada piksel (x,y)
+Gx = Matriks Prewitt arah Horizontal
+Gy = Matriks Prewitt arah Vertikal
+3.4.3 Laplacian Filter
+Laplacian adalah operator deteksi tepi berdasarkan turunan kedua, yang memperjelas perubahan intensitas drastis. Filter ini cocok untuk menegaskan struktur kasar seperti lipatan besar atau tumpukan kain.
+Metode Laplacian of Gauss dilakukan dengan menentukan bagian tepi citra menggunakan orde turunan kedua, Operator Laplace menghasilkan kepekaan terhadap noise pada tiap bagian piksel. Persamaan berikut adalah untuk turunan f(x,y) adalah : 
+ 
+Sehingga didapatkan turunan kedua dari f(x,y) dengan persamaan dibawah ini : 
+𝛻 2𝑓(𝑥, 𝑦) = −4𝑓(𝑥, 𝑦) + 𝑓(𝑥 + 1𝑦) + 𝑓(𝑥 − 1𝑦) + 𝑓(𝑥, 𝑦 + 1) + 𝑓(𝑥, 𝑦 − 1) Persamaan diatas  dihasilkan dengan melakukan konvolusi matriks Laplacian pada persamaan berikut:
+ 
+Kemudian dilakukan filter Gaussian dengan persamaan berikut:
+ \
+Fungsi dari filter Gaussian untuk mengaburkan citra dan menghilangkan noise, Sehingga operator Laplacian of Gauss didapatkan dari konvolusi persamaan dibawah ini:
+  
+Dengan : 
+σ = Nilai standar deviasi distribusi ( = 1,4) 
+e = Nilai eksponensial (2,71828183)
+
+
+12.	3.5 Evaluasi Hasil
+3.5.1 Evaluasi Visual
+Evaluasi dilakukan secara kualitatif dengan membandingkan hasil filter terhadap citra asli. Diperhatikan aspek:
+●	Keterlihatan kontur tekstil
+●	Kejelasan serat atau motif kain
+●	Kemampuan isolasi terhadap latar belakang
+Hasil menunjukkan bahwa Sobel memberikan hasil paling stabil, Prewitt menunjukkan kontur tajam namun memerlukan noise reduction lebih, dan Laplacian memberikan penekanan fitur kasar.
+3.5.2 Evaluasi Tekstural (GLCM)
+Evaluasi kuantitatif dilakukan menggunakan metode Gray Level Co-occurrence Matrix (GLCM) dari Haralick et al. (1973). Tiga parameter utama yang diukur:
+●	Kontras : Tinggi pada Laplacian, menunjukkan perbedaan tepi tajam.
+●	Energi : Tinggi pada Sobel, mencerminkan pola berulang yang halus.
+●	Entropi : Tinggi pada Prewitt, menandakan banyaknya informasi tekstur kompleks.
+Pendekatan ini memberikan dasar untuk membandingkan efektivitas masing-masing filter dalam menyoroti sampah tekstil.
+
+ 
+13.	   BAB IV 
+PENUTUP
+Penerapan teknik konvolusi 2D dalam pengolahan citra menunjukkan potensi besar dalam mendeteksi dan mengidentifikasi limbah tekstil seperti polyester dan microfiber di lingkungan perairan laut yang tercemar. Melalui ekstraksi fitur visual seperti tepi, tekstur, dan pola warna, metode ini memungkinkan sistem untuk membedakan limbah tekstil dari elemen alami seperti air, pasir, atau alga.
+Studi ini menunjukkan bahwa konvolusi 2D dapat berfungsi sebagai dasar dari sistem berbasis visi komputer yang mendukung upaya monitoring lingkungan secara otomatis dan efisien. Ke depan, pengembangan model deep learning yang lebih kompleks seperti CNN dengan dataset citra laut yang lebih beragam dapat meningkatkan akurasi dan kecepatan deteksi limbah tekstil secara signifikan. Diharapkan hasil penelitian ini dapat berkontribusi dalam pengurangan pencemaran laut dan mendukung keberlanjutan ekosistem perairan.
+
+
+
+

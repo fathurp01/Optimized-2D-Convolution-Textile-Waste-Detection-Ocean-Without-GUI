@@ -1,0 +1,71 @@
+kerjakan dua project dibawah ini. Citra yang digunakan WAJIB memiliki model warna rgb.  
+Berikut ini aturan library. Library yang digunakan: 
+- OpenCV (cv2)
+- scikit-image (skimage)
+- pillow (pil)
+- numpy
+- scikit learn
+- mahotas 
+- library bawaan dari python seperti sys, dll..
+Selain dari library diatas DILARANG DIGUNAKAN
+
+Deliverable yang perlu dikumpulkan antara lain :  
+✓ Kode python lengkap 
+✓ File citra asli 
+✓ File citra hasil ekstraksi fitur 
+✓ File citra training yaitu citra dan label kelas (opsional) 
+✓ File citra testing yaitu citra dan label kelas ground truth (opsional) 
+✓ File label kelas hasil model klasifikasi (opsional) 
+✓ Laporan : jelaskan topik, foto citra yang digunakan, preprocessing, ekstraksi fitur, dan 
+algortima yang anda buat, (opsional : algoritma klasifikasi citra). Tuliskan pembagian 
+pekerjaan masing-masing anggota secara lengkap dan bertanggung jawab. 
+✓ Video demo : buat rekaman dengan menunjukkan wajah semua anggota dan masing
+masing anggota menjelaskan tentang program dari awal sampai akhir.
+
+Program yang dibuat adalah: 
+• Program untuk melakukan ekstraksi fitur warna, bentuk dan tekstur 
+Buatlah sebuah program ekstraksi fitur untuk mendapatkan fitur warna, fitur bentuk 
+dan tekstur dari citra rgb, dengan objeknya adalah sampah dan minimal adalah 60 
+citra rgb yang digunakan. Kalian boleh membuat kelompok objek sampah jika 
+diperlukan,contohnya ada 3 kategori objek sampah (plastic, kertas, dan organik) 
+untuk objek sampah plastik kalian pakai ekstraksi fitur tekstur, kategori objek kertas 
+f
+ itur warna, dan kategori fitur organik ekstraksi bentuk. Ini hanya contoh saja bisa jadi 
+ekstraksi fitur yang digunakan realitanya bisa berbeda. Sehingga kalian wajib untuk 
+membuat minimal 3 program (jika ada tiga kategori objek sampah) ekstraksi fitur 
+berbasis warna, bentuk dan tekstur. 
+BONUS PENILAIAN 
+• Program untuk klasifikasi citra 
+Buatlah sebuah program untuk melakukan klasifikasi citra dengan menggunakan data 
+yang sama dengan program ekstraksi fitur. Gunakan minimal 2 model klasifikasi 
+(contoh : KNN dan SVM), lakukan proses training dan testing, kemudian lakukan 
+perhitungan evaluasi menggunakan matriks accuracy yang didapatkan dari library 
+scikit-learn
+
+
+Standar penilaian 
+1. Ketepatan pemilihan ekstraksi fitur untuk objek yang dilakukan ekstraksi, dan 
+kelengkapan (minimal tiga esktraksi fitur yaitu warna, bentuk dan tekstur) 
+2. Hasil ekstraksi fitur dari program yang dibuat 
+3. Penjelasan yang detail di laporan serta di video demo 
+4. Kreativitas dan ekstra effort yang anda lakukan, seperti contohnya preprocessing yang 
+dilakukan tidak hanya dari rgb -> grayscale, tetapi juga mencoba rgb -> hsv, atau rgb -> 
+cymk. Tidak hanya terbatas pada preprocessing, variasi citra seperti angle pengambilan 
+citra, kondisi hasil citra (terang, redup, atau berembun) juga menjadi standar penilaian.
+
+untuk proses programnya simple tidak boleh menggunakan gui jadi user hanya me run programnya
+dan otomatis imagenya akan di proses. baca total 60 citra rgb di folder samples kemudian process 
+semua imagenya di main menggunakan file image_processing dan polyester_detection, dalam polyester_detection
+gunakan dataset yang telah di sediakan untuk meningkatkan akurasi deteksi dan kemudian 
+hasilnya akan di buat dalam format setiap image memiliki 1 folder dengan format nama noUrut(misal1,2,3,dst)_namaImage
+dan di dalamnya terdapat semua output setiap proses yang telah di lakukan dan juga hasil klasifikasinya.
+
+untuk program gunakan konsep seperti yang sudah ada, jadi menggunakan adaptive processing yang mendeteksi
+kondisi image yang di baca karena dalam database terdapat berbagai kondisi (seperti buram, pencahayaan kurang, dan lain sebagainya)
+lalu berdasarkan kondisi tersebut akan otomatis memilih metode processing yang diperlukan jadi setiap image metode processing nya
+dapat berbeda bergantung pada situasi image input. untuk klasifikasi tetap gunakan kedua metode yang ada dan konsepnya juga sama 
+yaitu yang unggul pada saat deteksi adalah yang di gunakan.
+
+semua metodenya harus materi yang sudah di pelajari jadi jika ada yang tidak sesuai nanti akan saya beritahu untuk di benarkan
+untuk semua ketentuan programnya harus sesuai dengan ketentuan tugas dan itu adalah keharusan yang wajib
+
