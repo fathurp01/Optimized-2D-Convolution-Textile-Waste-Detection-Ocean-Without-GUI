@@ -24,7 +24,7 @@ Program ini mengimplementasikan sistem deteksi sampah tekstil polyester di lingk
 - **Laplacian Sharpening** - untuk blur dan wet condition
 
 ### 📊 **Ekstraksi Fitur Komprehensif**
-- **Fitur Warna**: HSV Statistics (12 fitur)
+- **Fitur Warna**: RGB Histogram (12 fitur)
 - **Fitur Tekstur**: Local Binary Pattern/LBP (14 fitur)
 - **Fitur Bentuk**: Contour Analysis (9 fitur)
 
