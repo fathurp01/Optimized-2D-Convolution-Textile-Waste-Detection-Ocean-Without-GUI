@@ -14,7 +14,7 @@ import os
 # ============================================================================
 
 
-def rgb_to_gray_manual(img_rgb):
+def rgb_to_gray(img_rgb):
     """Manual RGB to Grayscale conversion (PERSIS seperti referensi A3)"""
     H, W = img_rgb.shape[:2]
     gray = np.zeros((H, W), np.uint8)
@@ -32,12 +32,91 @@ def rgb_to_gray_manual(img_rgb):
 
 def rgb_to_hsv(img_rgb):
     """Convert RGB to HSV"""
-    return cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    H, W = img_rgb.shape[:2]
+    hsv_img = np.zeros((H, W, 3), dtype=np.float32)
+
+    for i in range(H):
+        for j in range(W):
+            # Get RGB values (normalized to 0-1)
+            r = img_rgb[i, j, 0] / 255.0
+            g = img_rgb[i, j, 1] / 255.0
+            b = img_rgb[i, j, 2] / 255.0
+
+            # Find max and min values
+            max_val = max(r, g, b)
+            min_val = min(r, g, b)
+            delta = max_val - min_val
+
+            # Calculate VALUE (V)
+            v = max_val
+
+            # Calculate SATURATION (S)
+            if max_val == 0:
+                s = 0
+            else:
+                s = delta / max_val
+
+            # Calculate HUE (H)
+            if delta == 0:
+                h = 0
+            elif max_val == r:
+                h = ((g - b) / delta) % 6
+            elif max_val == g:
+                h = (b - r) / delta + 2
+            else:  # max_val == b
+                h = (r - g) / delta + 4
+
+            h = h * 60  # Convert to degrees
+
+            # Store HSV values
+            hsv_img[i, j, 0] = h  # Hue (0-360)
+            hsv_img[i, j, 1] = s * 255  # Saturation (0-255)
+            hsv_img[i, j, 2] = v * 255  # Value (0-255)
+
+    return hsv_img.astype(np.uint8)
 
 
 def hsv_to_rgb(img_hsv):
     """Convert HSV to RGB"""
-    return cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
+    H, W = img_hsv.shape[:2]
+    rgb_img = np.zeros((H, W, 3), dtype=np.float32)
+
+    for i in range(H):
+        for j in range(W):
+            # Get HSV values (normalized)
+            h = img_hsv[i, j, 0]  # Hue (0-360)
+            s = img_hsv[i, j, 1] / 255.0  # Saturation (0-1)
+            v = img_hsv[i, j, 2] / 255.0  # Value (0-1)
+
+            # Calculate RGB using HSV to RGB formula
+            c = v * s  # Chroma
+            x = c * (1 - abs((h / 60) % 2 - 1))
+            m = v - c
+
+            if 0 <= h < 60:
+                r_prime, g_prime, b_prime = c, x, 0
+            elif 60 <= h < 120:
+                r_prime, g_prime, b_prime = x, c, 0
+            elif 120 <= h < 180:
+                r_prime, g_prime, b_prime = 0, c, x
+            elif 180 <= h < 240:
+                r_prime, g_prime, b_prime = 0, x, c
+            elif 240 <= h < 300:
+                r_prime, g_prime, b_prime = x, 0, c
+            else:  # 300 <= h < 360
+                r_prime, g_prime, b_prime = c, 0, x
+
+            # Final RGB values
+            r = (r_prime + m) * 255
+            g = (g_prime + m) * 255
+            b = (b_prime + m) * 255
+
+            # Store RGB values
+            rgb_img[i, j, 0] = np.clip(r, 0, 255)
+            rgb_img[i, j, 1] = np.clip(g, 0, 255)
+            rgb_img[i, j, 2] = np.clip(b, 0, 255)
+
+    return rgb_img.astype(np.uint8)
 
 
 # ============================================================================
@@ -56,7 +135,7 @@ def analyze_image_quality(img_rgb):
     # dan mendeteksi kondisi khusus seperti underwater, reflective, debris, faded,
     # transparent berdasarkan ambang batas pada metrik yang dihitung
 
-    img_gray = rgb_to_gray_manual(img_rgb)
+    img_gray = rgb_to_gray(img_rgb)
 
     analysis = {}
 
@@ -144,12 +223,48 @@ def manual_contrast_stretching(img_gray):
 
 def manual_histogram_equalization(img_gray):
     """METODE 4: Manual histogram equalization (PERSIS referensi A11)"""
-    return cv2.equalizeHist(img_gray)
+    # Calculate histogram
+    hist, bins = np.histogram(img_gray.flatten(), 256, [0, 256])
+
+    # Calculate cumulative distribution function (CDF)
+    cdf = hist.cumsum()
+
+    # Normalize CDF for visualization (optional)
+    cdf_normalized = cdf * hist.max() / cdf.max()
+
+    # Mask zero values in CDF
+    cdf_m = np.ma.masked_equal(cdf, 0)
+
+    # Apply histogram equalization formula
+    cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())
+
+    # Fill masked values with 0
+    cdf = np.ma.filled(cdf_m, 0).astype("uint8")
+
+    # Apply transformation using CDF as lookup table
+    equalized_img = cdf[img_gray]
+
+    return equalized_img
 
 
 def apply_median_filter_manual(img_gray):
     """METODE 5: Manual median filter 7x7 (PERSIS referensi D5)"""
-    return cv2.medianBlur(img_gray, 7)
+    hasil = img_gray.copy()
+    h, w = img_gray.shape
+
+    # Iterate through image with 7x7 window (radius = 3)
+    for i in range(3, h - 3):
+        for j in range(3, w - 3):
+            # Collect all 49 neighbors in 7x7 window
+            neighbors = [
+                img_gray[i + k, j + l] for k in range(-3, 4) for l in range(-3, 4)
+            ]
+            # Sort to find median
+            neighbors.sort()
+            # Median is the middle element (24th index in 0-48 range)
+            hasil[i, j] = neighbors[24]  # median dari 49 elemen
+
+    return hasil
 
 
 def manual_convolution_2d(X, F):
@@ -157,14 +272,11 @@ def manual_convolution_2d(X, F):
     X_height, X_width = X.shape
     F_height, F_width = F.shape
 
-    # Output dimensions
     out_height = X_height - F_height + 1
     out_width = X_width - F_width + 1
 
-    # Initialize output
     out = np.zeros((out_height, out_width))
 
-    # Perform convolution
     for i in range(out_height):
         for j in range(out_width):
             out[i, j] = np.sum(X[i : i + F_height, j : j + F_width] * F)
@@ -174,20 +286,56 @@ def manual_convolution_2d(X, F):
 
 def apply_gaussian_filter_manual(img_gray):
     """METODE 6: Manual Gaussian filter 5x5 (PERSIS referensi D3)"""
-    return cv2.GaussianBlur(img_gray, (5, 5), 0)
+    # Gaussian filter dengan kernel 5x5
+    kernel = (1.0 / 345) * np.array(
+        [
+            [1, 5, 7, 5, 1],
+            [5, 20, 33, 20, 5],
+            [7, 33, 55, 33, 7],
+            [5, 20, 33, 20, 5],
+            [1, 5, 7, 5, 1],
+        ],
+        dtype=np.float32,
+    )
+
+    hasil = manual_convolution_2d(img_gray.astype(np.float32), kernel)
+
+    hasil = np.clip(hasil, 0, 255).astype(np.uint8)
+
+    return hasil
 
 
 def apply_morphological_opening(img_gray):
     """METODE 7: Morphological opening (PERSIS referensi G1)"""
-    kernel = np.ones((5, 5), np.uint8)
-    return cv2.morphologyEx(img_gray, cv2.MORPH_OPEN, kernel)
+    # binary threshold with OTSU
+    ret, threshold = cv2.threshold(
+        img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+    )
+
+    strel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    hasil = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, strel)
+
+    return hasil
 
 
 def apply_sharpening_laplace(img_gray):
     """METODE 8: Laplacian sharpening (PERSIS referensi D4)"""
-    laplacian = cv2.Laplacian(img_gray, cv2.CV_64F)
-    sharpened = img_gray.astype(np.float64) - laplacian
-    return np.clip(sharpened, 0, 255).astype(np.uint8)
+    # Laplacian sharpening kernel 5x5
+    kernel = (1.0 / 16) * np.array(
+        [
+            [0, 0, -1, 0, 0],
+            [0, -1, -2, -1, 0],
+            [-1, -2, 16, -2, -1],
+            [0, -1, -2, -1, 0],
+            [0, 0, -1, 0, 0],
+        ],
+        dtype=np.float32,
+    )
+
+    hasil = manual_convolution_2d(img_gray.astype(np.float32), kernel)
+    hasil = np.clip(hasil, 0, 255).astype(np.uint8)
+
+    return hasil
 
 
 # ============================================================================
@@ -199,56 +347,56 @@ def adaptive_preprocessing(img_rgb, analysis):
     """Adaptive preprocessing berdasarkan kondisi image"""
 
     # Convert to grayscale untuk preprocessing
-    img_gray = rgb_to_gray_manual(img_rgb)
+    img_gray = rgb_to_gray(img_rgb)
 
     preprocessing_steps = []
     current_img = img_gray.copy()
 
     # Step 1: Noise reduction jika diperlukan
     if analysis.get("is_noisy", False) or analysis.get("has_debris", False):
-        print("     🧹 Applying median filter for noise/debris reduction...")
+        print("     [P01] Applying median filter for noise/debris reduction...")
         current_img = apply_median_filter_manual(current_img)
         preprocessing_steps.append(("median_filter", current_img.copy()))
 
     # Step 2: Brightness adjustment untuk dark images
     if analysis.get("is_dark", False):
-        print("     💡 Brightening dark image...")
+        print("     [P02] Brightening dark image...")
         current_img = manual_brightness_adjustment(current_img, brightness=50)
         preprocessing_steps.append(("brightness_adjustment", current_img.copy()))
 
     # Step 3: Contrast enhancement untuk low contrast
     if analysis.get("is_low_contrast", False):
-        print("     🔆 Enhancing contrast...")
+        print("     [P03] Enhancing contrast...")
         current_img = manual_contrast_enhancement(current_img, contrast=1.5)
         preprocessing_steps.append(("contrast_enhancement", current_img.copy()))
 
     # Step 4: Contrast stretching untuk better range
     if analysis.get("is_faded", False) or analysis.get("is_underwater", False):
-        print("     📈 Applying contrast stretching...")
+        print("     [P04] Applying contrast stretching...")
         current_img = manual_contrast_stretching(current_img)
         preprocessing_steps.append(("contrast_stretching", current_img.copy()))
 
     # Step 5: Histogram equalization untuk underwater/murky conditions
     if analysis.get("is_underwater", False):
-        print("     🌊 Applying histogram equalization for underwater conditions...")
+        print("     [P05] Applying histogram equalization for underwater conditions...")
         current_img = manual_histogram_equalization(current_img)
         preprocessing_steps.append(("histogram_equalization", current_img.copy()))
 
     # Step 6: Gaussian filter untuk smoothing
     if analysis.get("is_noisy", False):
-        print("     🌀 Applying Gaussian smoothing...")
+        print("     [P06] Applying Gaussian smoothing...")
         current_img = apply_gaussian_filter_manual(current_img)
         preprocessing_steps.append(("gaussian_filter", current_img.copy()))
 
     # Step 7: Morphological opening untuk debris removal
     if analysis.get("has_debris", False):
-        print("     🔧 Applying morphological opening for debris...")
+        print("     [P07] Applying morphological opening for debris...")
         current_img = apply_morphological_opening(current_img)
         preprocessing_steps.append(("morphological_opening", current_img.copy()))
 
     # Step 8: Sharpening untuk final enhancement
     if analysis.get("is_blurry", False) or analysis.get("is_underwater", False):
-        print("     🔪 Applying Laplacian sharpening...")
+        print("     [P08] Applying Laplacian sharpening...")
         current_img = apply_sharpening_laplace(current_img)
         preprocessing_steps.append(("laplacian_sharpening", current_img.copy()))
 
@@ -264,154 +412,94 @@ def adaptive_preprocessing(img_rgb, analysis):
 
 
 def extract_color_features(img_input):
-    """Extract RGB histogram features - Auto handle RGB/Grayscale"""
+    """Extract grayscale histogram features - SESUAI REFERENSI A9"""
 
-    print(f"     📊 Input shape: {img_input.shape}")
+    print(f"     [F01] Input shape: {img_input.shape}")
 
-    # Auto-detect dan convert ke RGB jika perlu
+    # Convert to grayscale menggunakan manual RGB to Gray conversion (A3)
     if len(img_input.shape) == 3 and img_input.shape[2] == 3:
-        print("     ✅ Input is already RGB")
-        img_rgb = img_input.copy()
-        is_converted = False
-    elif len(img_input.shape) == 2:
-        print("     🔄 Converting grayscale to RGB...")
-        img_rgb = cv2.cvtColor(img_input, cv2.COLOR_GRAY2RGB)
+        print("     [F01] Converting RGB to grayscale...")
+        img_gray = rgb_to_gray(img_input)  # Manual conversion sesuai A3
         is_converted = True
+    elif len(img_input.shape) == 2:
+        print("     [F01] Input is already grayscale")
+        img_gray = img_input.copy()
+        is_converted = False
     else:
         raise ValueError(f"Unsupported image format: {img_input.shape}")
 
-    # Calculate RGB histograms
-    hist_r = cv2.calcHist([img_rgb], [0], None, [256], [0, 256]).flatten()
-    hist_g = cv2.calcHist([img_rgb], [1], None, [256], [0, 256]).flatten()
-    hist_b = cv2.calcHist([img_rgb], [2], None, [256], [0, 256]).flatten()
+    # Calculate grayscale histogram (SESUAI REFERENSI A9)
+    hist_gray = cv2.calcHist([img_gray], [0], None, [256], [0, 256]).flatten()
 
-    # Calculate statistical features untuk setiap channel
+    # Simple statistical features untuk grayscale
     features = {
-        # Red channel statistics
-        "r_mean": np.mean(img_rgb[:, :, 0]),
-        "r_std": np.std(img_rgb[:, :, 0]),
-        "r_peak": np.argmax(hist_r),
-        "r_dominance": np.mean(img_rgb[:, :, 0]) / 255.0,
-        # Green channel statistics
-        "g_mean": np.mean(img_rgb[:, :, 1]),
-        "g_std": np.std(img_rgb[:, :, 1]),
-        "g_peak": np.argmax(hist_g),
-        "g_dominance": np.mean(img_rgb[:, :, 1]) / 255.0,
-        # Blue channel statistics
-        "b_mean": np.mean(img_rgb[:, :, 2]),
-        "b_std": np.std(img_rgb[:, :, 2]),
-        "b_peak": np.argmax(hist_b),
-        "b_dominance": np.mean(img_rgb[:, :, 2]) / 255.0,
-        # Overall features
-        "brightness": np.mean(img_rgb),
-        "overall_std": np.std(img_rgb),
+        # Basic grayscale statistics
+        "gray_mean": np.mean(img_gray),
+        "gray_std": np.std(img_gray),
+        "gray_peak": np.argmax(hist_gray),
+        "brightness": np.mean(img_gray),
+        "contrast": np.std(img_gray),
     }
 
     print(
-        f"     📈 RGB features calculated: R({features['r_mean']:.1f}), G({features['g_mean']:.1f}), B({features['b_mean']:.1f})"
+        f"     [F01] Grayscale features: Mean({features['gray_mean']:.1f}), Peak({features['gray_peak']})"
     )
 
-    # Create visualization
-    vis_img = create_rgb_histogram_visualization(
-        img_rgb, features, hist_r, hist_g, hist_b, is_converted
+    # Create simple visualization
+    vis_img = create_simple_grayscale_visualization(
+        img_gray, features, hist_gray, is_converted
     )
 
     return features, vis_img
 
 
-def create_rgb_histogram_visualization(
-    img_rgb, features, hist_r, hist_g, hist_b, is_converted=False
+def create_simple_grayscale_visualization(
+    img_gray, features, hist_gray, is_converted=False
 ):
-    """Create RGB histogram visualization using matplotlib - MATPLOTLIB ONLY"""
+    """Create simple grayscale histogram visualization"""
 
-    # Create matplotlib figure untuk histogram RGB yang rapi
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
-    fig.suptitle("RGB Color Analysis", fontsize=16, fontweight="bold")
+    # Create matplotlib figure dengan layout simple
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    fig.suptitle("Grayscale Analysis", fontsize=14, fontweight="bold")
 
     # 1. Original/Converted Image
-    ax1.imshow(img_rgb)
+    ax1.imshow(img_gray, cmap="gray")
     if is_converted:
-        ax1.set_title("Converted to RGB", fontsize=12, fontweight="bold")
+        ax1.set_title("Converted to Grayscale", fontsize=12)
     else:
-        ax1.set_title("Original RGB Image", fontsize=12, fontweight="bold")
+        ax1.set_title("Grayscale Image", fontsize=12)
     ax1.axis("off")
 
-    # 2. Red Channel Histogram
+    # 2. Simple Histogram
     x_range = np.arange(256)
-    ax2.fill_between(x_range, hist_r, color="red", alpha=0.7, label="Red Channel")
-    ax2.set_title("R - Red Channel", fontsize=12, fontweight="bold", color="red")
+    ax2.fill_between(x_range, hist_gray, color="gray", alpha=0.7)
+    ax2.set_title("Histogram", fontsize=12)
     ax2.set_xlabel("Pixel Intensity")
     ax2.set_ylabel("Frequency")
     ax2.set_xlim(0, 255)
     ax2.grid(True, alpha=0.3)
 
-    # Add statistics text
-    r_stats = f"Mean: {features['r_mean']:.1f}\nStd: {features['r_std']:.1f}\nPeak: {features['r_peak']}"
+    # Simple statistics text
+    stats_text = f"Mean: {features['gray_mean']:.0f}\nPeak: {features['gray_peak']}"
     ax2.text(
-        0.02,
-        0.98,
-        r_stats,
+        0.7,
+        0.8,
+        stats_text,
         transform=ax2.transAxes,
-        verticalalignment="top",
-        fontsize=9,
         bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
     )
 
-    # 3. Green Channel Histogram
-    ax3.fill_between(x_range, hist_g, color="green", alpha=0.7, label="Green Channel")
-    ax3.set_title("G - Green Channel", fontsize=12, fontweight="bold", color="green")
-    ax3.set_xlabel("Pixel Intensity")
-    ax3.set_ylabel("Frequency")
-    ax3.set_xlim(0, 255)
-    ax3.grid(True, alpha=0.3)
-
-    # Add statistics text
-    g_stats = f"Mean: {features['g_mean']:.1f}\nStd: {features['g_std']:.1f}\nPeak: {features['g_peak']}"
-    ax3.text(
-        0.02,
-        0.98,
-        g_stats,
-        transform=ax3.transAxes,
-        verticalalignment="top",
-        fontsize=9,
-        bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
-    )
-
-    # 4. Blue Channel Histogram
-    ax4.fill_between(x_range, hist_b, color="blue", alpha=0.7, label="Blue Channel")
-    ax4.set_title("B - Blue Channel", fontsize=12, fontweight="bold", color="blue")
-    ax4.set_xlabel("Pixel Intensity")
-    ax4.set_ylabel("Frequency")
-    ax4.set_xlim(0, 255)
-    ax4.grid(True, alpha=0.3)
-
-    # Add statistics text
-    b_stats = f"Mean: {features['b_mean']:.1f}\nStd: {features['b_std']:.1f}\nPeak: {features['b_peak']}"
-    ax4.text(
-        0.02,
-        0.98,
-        b_stats,
-        transform=ax4.transAxes,
-        verticalalignment="top",
-        fontsize=9,
-        bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
-    )
-
-    # Tight layout
     plt.tight_layout()
 
-    # Save to buffer dan convert ke OpenCV format
-
+    # Convert to OpenCV format
     buf = BytesIO()
-    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+    plt.savefig(buf, format="png", dpi=100, bbox_inches="tight")
     buf.seek(0)
-
-    # Convert buffer to OpenCV image
 
     pil_img = Image.open(buf)
     opencv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
-    plt.close()  # Clean memory
+    plt.close()
     buf.close()
 
     return opencv_img
@@ -438,7 +526,7 @@ def extract_texture_features(img_gray):
     }
 
     print(
-        f"     🔍 LBP features: mean={features['lbp_mean']:.2f}, uniformity={features['lbp_uniformity']:.3f}"
+        f"     [F02] LBP features: mean={features['lbp_mean']:.2f}, uniformity={features['lbp_uniformity']:.3f}"
     )
 
     # Create visualization
@@ -480,6 +568,7 @@ def create_texture_visualization(img_gray, lbp_image, features):
     ax3.set_title("LBP Histogram Distribution", fontsize=12, fontweight="bold")
     ax3.set_xlabel("LBP Value")
     ax3.set_ylabel("Frequency")
+    ax3.set_xlim(0, 255)
     ax3.grid(True, alpha=0.3)
 
     # Add LBP statistics
@@ -614,7 +703,7 @@ def extract_shape_features(img_gray):
     }
 
     print(
-        f"     🔷 Shape features: {features['total_shapes']} shapes, circularity={features['circularity']:.3f}"
+        f"     [F03] Shape features: {features['total_shapes']} shapes, circularity={features['circularity']:.3f}"
     )
 
     # Create visualization

@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import matplotlib
 
-matplotlib.use("Agg")  # Non-GUI backend untuk matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from image_processing import (
@@ -119,7 +119,7 @@ def save_processing_results(result_folder, results):
                 f"Score: {classification.get('score', 0)}/{classification.get('max_score', 18)}\n"
             )
 
-            # Template matching info (jika ada)
+            # Template matching info
             if "template_info" in classification:
                 f.write(f"\nTemplate Info: {classification['template_info']}\n")
 
@@ -191,7 +191,7 @@ def create_classification_visualization_with_bbox(
     """Create classification result visualization using matplotlib - PROFESSIONAL VERSION"""
 
     try:
-        # Create matplotlib figure untuk classification visualization yang rapi
+        # Matplotlib figure untuk klasifikasi
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
         fig.suptitle(
             "POLYESTER DETECTION CLASSIFICATION RESULT", fontsize=18, fontweight="bold"
@@ -209,14 +209,14 @@ def create_classification_visualization_with_bbox(
             img_rgb, shape_features, classification_result
         )
 
-        # LEFT SIDE: Original image dengan bounding boxes
+        # Sisi Kiri: Original image dengan bounding boxes
         ax1.imshow(img_rgb)
         ax1.set_title(
             "Detection Results with Bounding Boxes", fontsize=14, fontweight="bold"
         )
         ax1.axis("off")
 
-        # Draw bounding boxes on matplotlib
+        # Draw bounding boxes di matplotlib
         if bounding_boxes and classification in ["POLYESTER", "POSSIBLE_POLYESTER"]:
             colors = ["red", "lime", "yellow", "cyan", "magenta", "orange"]
 
@@ -261,7 +261,7 @@ def create_classification_visualization_with_bbox(
                     color="black",
                 )
 
-        # RIGHT SIDE: Comprehensive Analysis Dashboard
+        # Sisi Kanan: Comprehensive Analysis Dashboard
         ax2.axis("off")
         ax2.set_title(
             "Classification Analysis Dashboard", fontsize=14, fontweight="bold"
@@ -412,14 +412,14 @@ def create_classification_visualization_with_bbox(
         pil_img = Image.open(buf)
         opencv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
-        plt.close()  # Clean memory
+        plt.close()
         buf.close()
 
         return opencv_img
 
     except Exception as e:
         print(f"     ERROR creating classification visualization: {e}")
-        raise e  # Re-raise error instead of fallback
+        raise e
 
 
 def generate_bounding_boxes_for_classification(
@@ -476,8 +476,8 @@ def process_single_image(image_path, index, polyester_templates):
 
     try:
         # 1. Load and convert image
-        print(f"\nIMAGE Processing image {index}: {filename}")
-        print("   FOLDER Loading and converting to RGB...")
+        print(f"\nProcessing image {index}: {filename}")
+        print("   1. Loading and converting to RGB...")
 
         img_bgr = cv2.imread(image_path)
         if img_bgr is None:
@@ -485,17 +485,17 @@ def process_single_image(image_path, index, polyester_templates):
 
         # Convert BGR to RGB
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-        print(f"   SEARCH Original image shape: {img_rgb.shape}")
+        print(f"   2. Original image shape: {img_rgb.shape}")
 
         # Standardize image size
         img_rgb = standardize_image_size(img_rgb, target_height=400)
-        print(f"   RULER Standardized to size: {img_rgb.shape}")
+        print(f"   3. Standardized to size: {img_rgb.shape}")
 
         # Store results
         results = {"original": cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)}
 
         # 2. Preprocessing (8 metode) - TETAP SAMA
-        print("   WRENCH Applying preprocessing pipeline (8 methods)...")
+        print("   4. Applying preprocessing pipeline (8 methods)...")
         preprocessed_img, preprocessing_steps, quality_analysis = (
             apply_preprocessing_pipeline(img_rgb)
         )
@@ -507,7 +507,7 @@ def process_single_image(image_path, index, polyester_templates):
         img_gray = cv2.cvtColor(preprocessed_img, cv2.COLOR_RGB2GRAY)
 
         # RGB COLOR FEATURES - AUTO HANDLE GRAYSCALE/RGB
-        print("   PALETTE Extracting RGB histogram features...")
+        print("   5. Extracting RGB histogram features...")
         # PASS APAPUN (RGB atau grayscale), function akan handle auto-conversion
         color_features, color_img = extract_color_features(
             preprocessed_img
@@ -515,17 +515,17 @@ def process_single_image(image_path, index, polyester_templates):
         results["color_features"] = cv2.cvtColor(color_img, cv2.COLOR_RGB2BGR)
 
         # LBP TEXTURE FEATURES - TETAP SAMA (gunakan grayscale)
-        print("   BUILDING Extracting LBP texture features...")
+        print("   6. Extracting LBP texture features...")
         texture_features, texture_img = extract_texture_features(img_gray)
         results["texture_features"] = texture_img
 
         # SHAPE FEATURES - TETAP SAMA (gunakan grayscale)
-        print("   TRIANGLE Extracting contour shape identification...")
+        print("   7. Extracting contour shape identification...")
         shape_features, shape_img = extract_shape_features(img_gray)
         results["shape_features"] = shape_img
 
         # 4. Classification - TETAP SAMA
-        print("   MAGNIFIER Detecting polyester material...")
+        print("   8. Detecting polyester material...")
         (
             classification_result,
             extracted_color_features,
@@ -547,7 +547,7 @@ def process_single_image(image_path, index, polyester_templates):
         )
 
         # 5. Save all results - TETAP SAMA
-        print("   SAVE Saving results...")
+        print("   9. Saving results...")
         save_processing_results(result_folder, results)
 
         # Enhanced output
@@ -559,8 +559,8 @@ def process_single_image(image_path, index, polyester_templates):
         )
         num_objects = len(bounding_boxes)
 
-        print(f"   CHECK {classification} - {confidence:.1f}% confidence")
-        print(f"   BOX {num_objects} objects detected")
+        print(f"   10. {classification} - {confidence:.1f}% confidence")
+        print(f"   11. {num_objects} objects detected")
 
         return True
 
@@ -571,9 +571,9 @@ def process_single_image(image_path, index, polyester_templates):
 
 def print_methods_summary():
     """Print summary of methods used"""
-    print("\nNOTEBOOK METHODS SUMMARY")
+    print("\n[01] METHODS SUMMARY")
     print("=" * 50)
-    print("WRENCH PREPROCESSING METHODS (8 from reference):")
+    print("[PRE] PREPROCESSING METHODS (8 from reference):")
     print("   1. Manual Brightness Adjustment (A4)")
     print("   2. Manual Contrast Enhancement (A5)")
     print("   3. Manual Contrast Stretching (A6)")
@@ -583,22 +583,24 @@ def print_methods_summary():
     print("   7. Morphological Opening (G1)")
     print("   8. Laplacian Sharpening (D4)")
 
-    print("\nCHART FEATURE EXTRACTION (1 method each):")
-    print("   • Color: RGB Histogram Statistics (A10)")  # ✅ BENAR - RGB
-    print("   • Texture: LBP (Local Binary Pattern)")
-    print("   • Shape: Contour Shape Identification (H3)")
+    print("\n[FEX] FEATURE EXTRACTION (1 method each):")
+    print("   1. Color: Grayscale Histogram Statistics (A9)")
+    print("   2. Texture: LBP (Local Binary Pattern)")
+    print("   3. Shape: Contour Shape Identification (H3)")
 
-    print("\nTARGET CLASSIFICATION METHODS (2 main):")
+    print("\n[CLS] CLASSIFICATION METHODS (2 main):")
     print("   1. Template Matching (Correlation)")
     print("   2. Rule-based Classification (12 rules)")
 
-    print("\nDATABASE DATABASE CONDITIONS SUPPORTED:")
-    print("   • Environmental: clear_water, murky_water, various_lighting, with_debris")
-    print("   • Colors: bright_colors, faded_colors, transparent_polyester")
+    print("\n[SUP] DATABASE CONDITIONS SUPPORTED:")
+    print(
+        "   1. Environmental: clear_water, murky_water, various_lighting, with_debris"
+    )
+    print("   2. Colors: bright_colors, faded_colors, transparent_polyester")
 
 
 def main():
-    print("ROCKET Starting Enhanced Polyester Detection Pipeline")
+    print("Starting Enhanced Polyester Detection Pipeline")
     print("=" * 60)
 
     # Print methods summary
@@ -608,7 +610,7 @@ def main():
     ensure_folders()
 
     # LOAD DATASET TEMPLATES ONCE - MOVE HERE
-    print("\nFOLDER Loading polyester template dataset...")
+    print("\n[FOLDER] Loading polyester template dataset...")
     polyester_templates = load_polyester_dataset("dataset")
 
     # Get all image files
@@ -620,14 +622,14 @@ def main():
         )
         if len(image_files) == 0:
             print("ERROR No images found in samples folder!")
-            print("MEMO Please add RGB images to the 'samples' folder")
-            print("MEMO Supported formats: .jpg, .jpeg, .png, .bmp, .tiff")
+            print("Please add RGB images to the 'samples' folder")
+            print("Supported formats: .jpg, .jpeg, .png, .bmp, .tiff")
             sys.exit(1)
     else:
         print(f"\nFILES Found {len(image_files)} RGB images for processing")
 
     # Process all images
-    print(f"\nREFRESH Starting processing of {len(image_files)} images...")
+    print(f"\nStarting processing of {len(image_files)} images...")
     successful = 0
     failed = 0
     polyester_detected = 0
@@ -663,49 +665,44 @@ def main():
 
         # Progress indicator every 10 images
         if index % 10 == 0:
-            print(f"   CHART Progress: {index}/{len(image_files)} images processed")
+            print(f"   Progress: {index}/{len(image_files)} images processed")
 
     # Final summary
     print("\n" + "=" * 60)
-    print("CHART ENHANCED POLYESTER DETECTION SUMMARY")
+    print("ENHANCED POLYESTER DETECTION SUMMARY")
     print("=" * 60)
-    print(f"IMAGE Total images processed: {len(image_files)}")
-    print(f"CHECK Successfully processed: {successful} images")
-    print(f"ERROR Failed to process: {failed} images")
-    print(f"MAGNIFIER POLYESTER detected: {polyester_detected} images")
-    print(f"MAGNIFIER POSSIBLE_POLYESTER: {possible_polyester} images")
+    print(f"Total images processed: {len(image_files)}")
+    print(f"Successfully processed: {successful} images")
+    print(f"Failed to process: {failed} images")
+    print(f"POLYESTER detected: {polyester_detected} images")
+    print(f"POSSIBLE_POLYESTER: {possible_polyester} images")
     print(
-        f"MAGNIFIER NOT_POLYESTER: {successful - polyester_detected - possible_polyester} images"
+        f"NOT_POLYESTER: {successful - polyester_detected - possible_polyester} images"
     )
 
     # Detection rate
     if successful > 0:
         detection_rate = ((polyester_detected + possible_polyester) / successful) * 100
-        print(f"TRENDING Detection rate: {detection_rate:.1f}%")
+        print(f"Detection rate: {detection_rate:.1f}%")
 
-    print(f"\nFOLDER Results saved in: output/ folder")
-    print(f"NOTEBOOK Each result folder contains:")
+    print(f"\nResults saved in: output/ folder")
+    print(f"Each result folder contains:")
     print("   • 01_original.jpg - Original image")
     print("   • 02_XX_method.jpg - Preprocessing steps")
     print("   • 03_final_preprocessed.jpg - Final preprocessed")
-    print("   • 04_color_features.jpg - RGB histogram analysis")
+    print(
+        "   • 04_color_features.jpg - Grayscale histogram analysis"
+    )  # ✅ DIUBAH dari RGB ke Grayscale
     print("   • 05_texture_features.jpg - LBP texture analysis")
     print("   • 06_shape_features.jpg - Contour shape analysis")
     print("   • 07_classification_result.jpg - Classification visualization")
     print("   • 08_classification_report.txt - Detailed analysis report")
 
-    print("\nCELEBRATE Processing completed!")
+    print("\nProcessing completed!")
 
     if successful > 0:
-        print(
-            f"\nLIGHTBULB Check output/001_*/08_classification_report.txt for detailed analysis"
-        )
-        print(
-            f"LIGHTBULB View output/001_*/07_classification_result.jpg for visual results"
-        )
-
         # Show sample results
-        print(f"\nNOTEBOOK SAMPLE RESULTS:")
+        print(f"\nSAMPLE RESULTS:")
         sample_count = min(3, successful)
         for i in range(1, sample_count + 1):
             try:

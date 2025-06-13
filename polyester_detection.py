@@ -40,7 +40,7 @@ def load_polyester_dataset(dataset_path="dataset"):
 
     if not os.path.exists(dataset_path):
         print(
-            f"⚠️ Dataset folder '{dataset_path}' not found. Using feature-based detection only."
+            f"[WAR] Dataset folder '{dataset_path}' not found. Using feature-based detection only."
         )
         return polyester_templates
 
@@ -88,14 +88,14 @@ def load_polyester_dataset(dataset_path="dataset"):
                         )
                         templates_loaded += 1
 
-    print(f"📁 Loaded {templates_loaded} POLYESTER template images")
+    print(f"   1. Loaded {templates_loaded} POLYESTER template images")
     if category_count and any(count > 0 for count in category_count.values()):
-        print("📊 Templates per category:")
+        print("   2. Templates per category:")
         for cat, count in category_count.items():
             if count > 0:
-                print(f"   • {cat}: {count} images")
+                print(f"      • {cat}: {count} images")
     elif templates_loaded > 0:
-        print(f"📊 Loaded from flat structure: {templates_loaded} images")
+        print(f"   2. Loaded from flat structure: {templates_loaded} images")
 
     return polyester_templates
 
@@ -108,59 +108,45 @@ def load_polyester_dataset(dataset_path="dataset"):
 def enhanced_rule_based_classification(
     color_features, texture_features, shape_features
 ):
-    """Enhanced rule-based classification SESUAI REFERENSI A10 + H3 + LBP"""
+    """Enhanced rule-based classification SESUAI REFERENSI A9 + H3 + LBP"""
 
     score = 0
-    max_score = 18  # Total 18 aturan
+    max_score = 12
     reasons = []
 
     # ============================================================================
-    # RGB COLOR RULES (6 rules) - SESUAI REFERENSI A10
+    # GRAYSCALE COLOR RULES (4 rules) - SESUAI REFERENSI A9
     # ============================================================================
 
-    # Rule 1: RGB Brightness analysis (polyester cenderung bright/synthetic)
+    # Rule 1: Grayscale Brightness analysis (polyester cenderung bright/synthetic)
     brightness = color_features.get("brightness", 0)
     if 100 <= brightness <= 180:  # Moderate to bright (synthetic look)
-        score += 3
-        reasons.append("✓ Synthetic brightness range (100-180)")
+        score += 2
+        reasons.append("[R01] Synthetic brightness range (100-180)")
     elif brightness > 180:  # Very bright (possible polyester)
-        score += 2
-        reasons.append("✓ High synthetic brightness (>180)")
-
-    # Rule 2: RGB Color dominance analysis (polyester specific patterns)
-    r_dom = color_features.get("r_dominance", 0)
-    g_dom = color_features.get("g_dominance", 0)
-    b_dom = color_features.get("b_dominance", 0)
-
-    # Polyester often has balanced or blue-dominant colors
-    if 0.25 <= r_dom <= 0.45 and 0.25 <= g_dom <= 0.45:  # Balanced RGB
-        score += 2
-        reasons.append("✓ Balanced RGB dominance (synthetic material)")
-    elif b_dom > 0.4:  # Blue dominant (common in polyester)
-        score += 2
-        reasons.append("✓ Blue dominance (polyester characteristic)")
-
-    # Rule 3: RGB Standard deviation analysis (uniform synthetic texture)
-    r_std = color_features.get("r_std", 0)
-    g_std = color_features.get("g_std", 0)
-    b_std = color_features.get("b_std", 0)
-    avg_std = (r_std + g_std + b_std) / 3
-
-    if 20 <= avg_std <= 60:  # Moderate uniformity (synthetic)
-        score += 2
-        reasons.append("✓ Moderate color uniformity (synthetic)")
-    elif avg_std < 20:  # Very uniform (possible polyester)
         score += 1
-        reasons.append("✓ High color uniformity")
+        reasons.append("[R01] High synthetic brightness (>180)")
 
-    # Rule 4: RGB Peak analysis (synthetic materials have distinct peaks)
-    r_peak = color_features.get("r_peak", 0)
-    g_peak = color_features.get("g_peak", 0)
-    b_peak = color_features.get("b_peak", 0)
-
-    if 80 <= r_peak <= 200 and 80 <= g_peak <= 200 and 80 <= b_peak <= 200:
+    # Rule 2: Grayscale contrast analysis (synthetic uniformity)
+    contrast = color_features.get("contrast", 0)
+    if 20 <= contrast <= 60:  # Moderate contrast (synthetic)
+        score += 2
+        reasons.append("[R02] Moderate contrast (synthetic material)")
+    elif contrast < 20:  # Very uniform (possible polyester)
         score += 1
-        reasons.append("✓ Synthetic RGB peak distribution")
+        reasons.append("[R02] High uniformity (synthetic)")
+
+    # Rule 3: Grayscale peak analysis (histogram peak position)
+    gray_peak = color_features.get("gray_peak", 0)
+    if 80 <= gray_peak <= 200:  # Typical synthetic range
+        score += 1
+        reasons.append("[R03] Synthetic grayscale peak distribution")
+
+    # Rule 4: Grayscale mean analysis (overall intensity)
+    gray_mean = color_features.get("gray_mean", 0)
+    if 90 <= gray_mean <= 170:  # Typical polyester range
+        score += 1
+        reasons.append("[R04] Typical polyester brightness")
 
     # ============================================================================
     # LBP TEXTURE RULES (4 rules) - TEXTURE ANALYSIS
@@ -170,56 +156,56 @@ def enhanced_rule_based_classification(
     lbp_uniformity = texture_features.get("lbp_uniformity", 0)
     if lbp_uniformity > 0.1:  # High uniformity
         score += 2
-        reasons.append("✓ High texture uniformity (LBP)")
+        reasons.append("[R05] High texture uniformity (LBP)")
     elif lbp_uniformity > 0.05:
         score += 1
-        reasons.append("✓ Moderate texture uniformity")
+        reasons.append("[R05] Moderate texture uniformity")
 
     # Rule 6: LBP mean analysis (synthetic texture patterns)
     lbp_mean = texture_features.get("lbp_mean", 0)
     if 5 <= lbp_mean <= 15:  # Typical synthetic range
         score += 1
-        reasons.append("✓ Synthetic texture pattern (LBP mean)")
+        reasons.append("[R06] Synthetic texture pattern (LBP mean)")
 
     # Rule 7: LBP standard deviation (synthetic consistency)
     lbp_std = texture_features.get("lbp_std", 0)
     if lbp_std < 10:  # Low variation (synthetic)
         score += 1
-        reasons.append("✓ Low texture variation (synthetic)")
+        reasons.append("[R07] Low texture variation (synthetic)")
+
+    # Rule 8: Texture contrast (material surface properties)
+    texture_contrast = texture_features.get("contrast", 0)
+    if texture_contrast > 500:  # High texture contrast (synthetic material)
+        score += 1
+        reasons.append("[R08] High texture contrast (synthetic)")
 
     # ============================================================================
-    # SHAPE RULES (8 rules) - SESUAI REFERENSI H3
+    # SHAPE RULES (4 rules) - SESUAI REFERENSI H3
     # ============================================================================
 
-    # Rule 8: Shape count analysis (polyester fragments)
+    # Rule 9: Shape count analysis (polyester fragments)
     total_shapes = shape_features.get("total_shapes", 0)
     if 1 <= total_shapes <= 10:  # Reasonable fragment count
         score += 1
-        reasons.append("✓ Reasonable fragment count")
-
-    # Rule 9: Dominant shape analysis (polyester fragments are often irregular)
-    dominant_shape = shape_features.get("dominant_shape", "None")
-    if dominant_shape in ["Circle", "Rectangle", "Unknown"]:  # Common polyester shapes
-        score += 1
-        reasons.append(f"✓ Common polyester shape: {dominant_shape}")
+        reasons.append("[R09] Reasonable fragment count")
 
     # Rule 10: Circularity analysis (plastic fragments characteristics)
     circularity = shape_features.get("circularity", 0)
     if 0.1 <= circularity <= 0.8:  # Moderate circularity (fragments)
         score += 1
-        reasons.append("✓ Fragment-like circularity")
+        reasons.append("[R10] Fragment-like circularity")
 
     # Rule 11: Solidity analysis (plastic material characteristics)
     solidity = shape_features.get("solidity", 0)
     if solidity > 0.7:  # Solid objects (not hollow)
         score += 1
-        reasons.append("✓ Solid material characteristic")
+        reasons.append("[R11] Solid material characteristic")
 
     # Rule 12: Area analysis (size-based classification)
     total_area = shape_features.get("total_area", 0)
     if total_area > 1000:  # Significant area coverage
         score += 1
-        reasons.append("✓ Significant material area")
+        reasons.append("[R12] Significant material area")
 
     # Calculate confidence
     confidence = (score / max_score) * 100
@@ -242,7 +228,7 @@ def enhanced_rule_based_classification(
         "score": score,
         "max_score": max_score,
         "reasons": reasons,
-        "method": "Enhanced Rule-based (RGB A10 + LBP + Contour H3)",
+        "method": "Enhanced Rule-based (Grayscale A9 + LBP + Contour H3)",
     }
 
 
