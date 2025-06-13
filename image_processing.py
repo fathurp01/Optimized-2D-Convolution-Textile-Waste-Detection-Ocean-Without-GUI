@@ -126,45 +126,37 @@ def hsv_to_rgb(img_hsv):
 
 def analyze_image_quality(img_rgb):
     """Enhanced analysis untuk kondisi database yang kompleks"""
-    # Gunakan manual RGB to Gray conversion sesuai referensi A3
-    # Convert RGB to Grayscale
-    # Menghitng kecerahan (mean pixel intensity) dan kontras (standar deviation)
-    # Mendeteksi kekaburan Menggunakan varian laplacian
-    # mendeteksi kebisingan dengan median filter
-    # menghitung kepadatan tepi menggunakan operator canny
-    # dan mendeteksi kondisi khusus seperti underwater, reflective, debris, faded,
-    # transparent berdasarkan ambang batas pada metrik yang dihitung
-
+    # RGB to Gray conversion
     img_gray = rgb_to_gray(img_rgb)
-
     analysis = {}
 
-    # Basic analysis
+    # hitung rata-rata kecerahan gambar
     brightness = np.mean(img_gray)
     analysis["brightness"] = brightness
     analysis["is_dark"] = brightness < 80
     analysis["is_bright"] = brightness > 180
 
+    # Hitung kontras gambar (standar deviasi)
     contrast = img_gray.std()
     analysis["contrast"] = contrast
     analysis["is_low_contrast"] = contrast < 30
 
-    # Detection for specific conditions
+    # Deteksi blur menggunakan varian Laplacian
     blur_score = cv2.Laplacian(img_gray, cv2.CV_64F).var()
     analysis["blur_score"] = blur_score
     analysis["is_blurry"] = blur_score < 100
 
-    # Noise detection
+    # Deteksi noise: selisih antara median blur dan gambar asli
     noise_level = np.std(cv2.medianBlur(img_gray, 5) - img_gray)
     analysis["noise_level"] = noise_level
     analysis["is_noisy"] = noise_level > 15
 
-    # Edge density untuk debris detection
+    # Hitung edge density menggunakan operator Canny
     edges = cv2.Canny(img_gray, 50, 150)
     edge_density = np.sum(edges > 0) / edges.size
     analysis["edge_density"] = edge_density
 
-    # Special condition detection berdasarkan kondisi database
+    # Deteksi kondisi khusus berdasarkan threshold pada metrik
     analysis["is_underwater"] = brightness < 100 and contrast < 25
     analysis["is_reflective"] = brightness > 150 and contrast < 30
     analysis["has_debris"] = edge_density > 0.15
@@ -185,6 +177,7 @@ def manual_brightness_adjustment(img_gray, brightness=80):
     result = img_gray.copy()
     for i in range(H):
         for j in range(W):
+            # Tambahkan nilai brightness ke setiap piksel dan pastikan tetap dalam rentang 0-255
             result[i, j] = np.clip(img_gray[i, j] + brightness, 0, 255)
     return result
 
@@ -195,17 +188,17 @@ def manual_contrast_enhancement(img_gray, contrast=1.7):
     result = img_gray.copy()
     for i in range(H):
         for j in range(W):
+            # Tambahkan nilai contrast ke setiap piksel dan pastikan tetap dalam rentang 0-255
             result[i, j] = np.clip(contrast * img_gray[i, j], 0, 255)
     return result
 
 
 def manual_contrast_stretching(img_gray):
     """METODE 3: Manual contrast stretching (PERSIS referensi A6)"""
-    # Find min and max values
     min_val = np.min(img_gray)
     max_val = np.max(img_gray)
 
-    # Apply contrast stretching formula
+    # Jika rentang intensitas 0 (semua piksel sama), kembalikan gambar asli
     if max_val - min_val == 0:
         return img_gray
 
@@ -214,6 +207,7 @@ def manual_contrast_stretching(img_gray):
 
     for i in range(H):
         for j in range(W):
+            # Rumus kontras stretching: skala nilai piksel ke rentang 0-255
             result[i, j] = np.clip(
                 255 * (img_gray[i, j] - min_val) / (max_val - min_val), 0, 255
             )
@@ -223,25 +217,20 @@ def manual_contrast_stretching(img_gray):
 
 def manual_histogram_equalization(img_gray):
     """METODE 4: Manual histogram equalization (PERSIS referensi A11)"""
-    # Calculate histogram
+    # Hitung histogram dari citra grayscale
     hist, bins = np.histogram(img_gray.flatten(), 256, [0, 256])
 
-    # Calculate cumulative distribution function (CDF)
+    # Hitung cumulative distribution function (CDF) dari histogram
     cdf = hist.cumsum()
 
-    # Normalize CDF for visualization (optional)
+    # Normalisasi CDF untuk visualisasi
     cdf_normalized = cdf * hist.max() / cdf.max()
 
-    # Mask zero values in CDF
+    # Masking nilai nol pada CDF dan terapkan histogram equalization
     cdf_m = np.ma.masked_equal(cdf, 0)
-
-    # Apply histogram equalization formula
     cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())
-
-    # Fill masked values with 0
     cdf = np.ma.filled(cdf_m, 0).astype("uint8")
 
-    # Apply transformation using CDF as lookup table
     equalized_img = cdf[img_gray]
 
     return equalized_img
@@ -252,16 +241,16 @@ def apply_median_filter_manual(img_gray):
     hasil = img_gray.copy()
     h, w = img_gray.shape
 
-    # Iterate through image with 7x7 window (radius = 3)
+    # Iterasi setiap piksel gambar, kecuali tepi (karena window 7x7)
     for i in range(3, h - 3):
         for j in range(3, w - 3):
-            # Collect all 49 neighbors in 7x7 window
+            # Ambil semua 49 tetangga dalam window 7x7 di sekitar piksel (i, j)
             neighbors = [
                 img_gray[i + k, j + l] for k in range(-3, 4) for l in range(-3, 4)
             ]
-            # Sort to find median
+            # Urutkan nilai tetangga untuk mencari median
             neighbors.sort()
-            # Median is the middle element (24th index in 0-48 range)
+            # Median adalah elemen ke-24 (indeks 24 dari 0-48)
             hasil[i, j] = neighbors[24]  # median dari 49 elemen
 
     return hasil
@@ -299,7 +288,6 @@ def apply_gaussian_filter_manual(img_gray):
     )
 
     hasil = manual_convolution_2d(img_gray.astype(np.float32), kernel)
-
     hasil = np.clip(hasil, 0, 255).astype(np.uint8)
 
     return hasil
@@ -307,11 +295,12 @@ def apply_gaussian_filter_manual(img_gray):
 
 def apply_morphological_opening(img_gray):
     """METODE 7: Morphological opening (PERSIS referensi G1)"""
-    # binary threshold with OTSU
+    # Lakukan threshold biner menggunakan metode OTSU untuk mendapatkan citra biner
     ret, threshold = cv2.threshold(
         img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
 
+    # Buat elemen struktur berbentuk elips dan menerapkan morphological opening
     strel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     hasil = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, strel)
 
@@ -346,61 +335,59 @@ def apply_sharpening_laplace(img_gray):
 def adaptive_preprocessing(img_rgb, analysis):
     """Adaptive preprocessing berdasarkan kondisi image"""
 
-    # Convert to grayscale untuk preprocessing
     img_gray = rgb_to_gray(img_rgb)
 
     preprocessing_steps = []
     current_img = img_gray.copy()
 
-    # Step 1: Noise reduction jika diperlukan
+    # Step 1: Reduksi noise jika gambar terdeteksi noisy atau terdapat debris
     if analysis.get("is_noisy", False) or analysis.get("has_debris", False):
         print("     [P01] Applying median filter for noise/debris reduction...")
         current_img = apply_median_filter_manual(current_img)
         preprocessing_steps.append(("median_filter", current_img.copy()))
 
-    # Step 2: Brightness adjustment untuk dark images
+    # Step 2: Penyesuaian kecerahan jika gambar terlalu gelap
     if analysis.get("is_dark", False):
         print("     [P02] Brightening dark image...")
         current_img = manual_brightness_adjustment(current_img, brightness=50)
         preprocessing_steps.append(("brightness_adjustment", current_img.copy()))
 
-    # Step 3: Contrast enhancement untuk low contrast
+    # Step 3: Peningkatan kontras jika gambar memiliki kontras rendah
     if analysis.get("is_low_contrast", False):
         print("     [P03] Enhancing contrast...")
         current_img = manual_contrast_enhancement(current_img, contrast=1.5)
         preprocessing_steps.append(("contrast_enhancement", current_img.copy()))
 
-    # Step 4: Contrast stretching untuk better range
+    # Step 4: Kontras stretching untuk memperluas rentang intensitas
     if analysis.get("is_faded", False) or analysis.get("is_underwater", False):
         print("     [P04] Applying contrast stretching...")
         current_img = manual_contrast_stretching(current_img)
         preprocessing_steps.append(("contrast_stretching", current_img.copy()))
 
-    # Step 5: Histogram equalization untuk underwater/murky conditions
+    # Step 5: Histogram equalization untuk kondisi gambar keruh/underwater
     if analysis.get("is_underwater", False):
         print("     [P05] Applying histogram equalization for underwater conditions...")
         current_img = manual_histogram_equalization(current_img)
         preprocessing_steps.append(("histogram_equalization", current_img.copy()))
 
-    # Step 6: Gaussian filter untuk smoothing
+    # Step 6: Gaussian filter untuk smoothing jika gambar noisy
     if analysis.get("is_noisy", False):
         print("     [P06] Applying Gaussian smoothing...")
         current_img = apply_gaussian_filter_manual(current_img)
         preprocessing_steps.append(("gaussian_filter", current_img.copy()))
 
-    # Step 7: Morphological opening untuk debris removal
+    # Step 7: Morphological opening untuk menghilangkan debris pada gambar
     if analysis.get("has_debris", False):
         print("     [P07] Applying morphological opening for debris...")
         current_img = apply_morphological_opening(current_img)
         preprocessing_steps.append(("morphological_opening", current_img.copy()))
 
-    # Step 8: Sharpening untuk final enhancement
+    # Step 8: Penajaman gambar menggunakan Laplacian jika gambar blur atau underwater
     if analysis.get("is_blurry", False) or analysis.get("is_underwater", False):
         print("     [P08] Applying Laplacian sharpening...")
         current_img = apply_sharpening_laplace(current_img)
         preprocessing_steps.append(("laplacian_sharpening", current_img.copy()))
 
-    # Convert back to RGB
     final_rgb = cv2.cvtColor(current_img, cv2.COLOR_GRAY2RGB)
 
     return final_rgb, preprocessing_steps
@@ -416,36 +403,36 @@ def extract_color_features(img_input):
 
     print(f"     [F01] Input shape: {img_input.shape}")
 
-    # Convert to grayscale menggunakan manual RGB to Gray conversion (A3)
+    # Cek apakah input berupa citra RGB
     if len(img_input.shape) == 3 and img_input.shape[2] == 3:
         print("     [F01] Converting RGB to grayscale...")
-        img_gray = rgb_to_gray(img_input)  # Manual conversion sesuai A3
+        img_gray = rgb_to_gray(img_input)
         is_converted = True
+    # Jika input sudah grayscale (1 channel)
     elif len(img_input.shape) == 2:
         print("     [F01] Input is already grayscale")
         img_gray = img_input.copy()
         is_converted = False
     else:
+        # Format citra tidak didukung
         raise ValueError(f"Unsupported image format: {img_input.shape}")
 
-    # Calculate grayscale histogram (SESUAI REFERENSI A9)
+    # Hitung histogram grayscale (256 bin, rentang 0-255)
     hist_gray = cv2.calcHist([img_gray], [0], None, [256], [0, 256]).flatten()
 
-    # Simple statistical features untuk grayscale
+    # Hitung fitur statistik sederhana dari citra grayscale
     features = {
-        # Basic grayscale statistics
-        "gray_mean": np.mean(img_gray),
-        "gray_std": np.std(img_gray),
-        "gray_peak": np.argmax(hist_gray),
-        "brightness": np.mean(img_gray),
-        "contrast": np.std(img_gray),
+        "gray_mean": np.mean(img_gray),  # rata-rata
+        "gray_std": np.std(img_gray),  # standar deviasi
+        "gray_peak": np.argmax(hist_gray),  # indeks bin dengan frekuensi tertinggi
+        "brightness": np.mean(img_gray),  # rata-rata kecerahan
+        "contrast": np.std(img_gray),  # kontras / standar deviasi
     }
 
     print(
         f"     [F01] Grayscale features: Mean({features['gray_mean']:.1f}), Peak({features['gray_peak']})"
     )
 
-    # Create simple visualization
     vis_img = create_simple_grayscale_visualization(
         img_gray, features, hist_gray, is_converted
     )
@@ -458,11 +445,11 @@ def create_simple_grayscale_visualization(
 ):
     """Create simple grayscale histogram visualization"""
 
-    # Create matplotlib figure dengan layout simple
+    # Membuat figure matplotlib dengan layout 1 baris 2 kolom
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
     fig.suptitle("Grayscale Analysis", fontsize=14, fontweight="bold")
 
-    # 1. Original/Converted Image
+    # 1. Menampilkan gambar grayscale asli/hasil konversi
     ax1.imshow(img_gray, cmap="gray")
     if is_converted:
         ax1.set_title("Converted to Grayscale", fontsize=12)
@@ -470,7 +457,7 @@ def create_simple_grayscale_visualization(
         ax1.set_title("Grayscale Image", fontsize=12)
     ax1.axis("off")
 
-    # 2. Simple Histogram
+    # 2. Menampilkan histogram sederhana dari citra grayscale
     x_range = np.arange(256)
     ax2.fill_between(x_range, hist_gray, color="gray", alpha=0.7)
     ax2.set_title("Histogram", fontsize=12)
@@ -479,7 +466,7 @@ def create_simple_grayscale_visualization(
     ax2.set_xlim(0, 255)
     ax2.grid(True, alpha=0.3)
 
-    # Simple statistics text
+    # Menampilkan statistik sederhana (mean dan peak) pada histogram
     stats_text = f"Mean: {features['gray_mean']:.0f}\nPeak: {features['gray_peak']}"
     ax2.text(
         0.7,
@@ -491,11 +478,12 @@ def create_simple_grayscale_visualization(
 
     plt.tight_layout()
 
-    # Convert to OpenCV format
+    # Menyimpan figure ke buffer memory (BytesIO)
     buf = BytesIO()
     plt.savefig(buf, format="png", dpi=100, bbox_inches="tight")
     buf.seek(0)
 
+    # Membaca buffer sebagai gambar PIL, lalu konversi ke format OpenCV (BGR)
     pil_img = Image.open(buf)
     opencv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
@@ -508,28 +496,29 @@ def create_simple_grayscale_visualization(
 def extract_texture_features(img_gray):
     """Extract LBP texture features"""
 
-    # Parameters untuk LBP
+    # Parameter untuk LBP: radius dan jumlah titik di sekeliling radius
     radius = 3
     n_points = 8 * radius
 
-    # Calculate LBP
+    # Hitung Local Binary Pattern (LBP) pada citra grayscale
     lbp = feature.local_binary_pattern(img_gray, n_points, radius, method="uniform")
 
-    # Calculate texture features
+    # Hitung fitur-fitur tekstur dari hasil LBP dan citra grayscale
     features = {
-        "lbp_mean": np.mean(lbp),
-        "lbp_std": np.std(lbp),
-        "lbp_uniformity": len(np.unique(lbp)) / (n_points + 2),  # Uniformity measure
-        "contrast": np.std(img_gray) ** 2,
-        "homogeneity": 1.0 / (1.0 + np.var(img_gray)),
-        "energy": np.sum(img_gray**2) / (img_gray.shape[0] * img_gray.shape[1]),
+        "lbp_mean": np.mean(lbp),  # Rata-rata nilai LBP
+        "lbp_std": np.std(lbp),  # Standar deviasi nilai LBP
+        "lbp_uniformity": len(np.unique(lbp)) / (n_points + 2),  # Uniformitas pola LBP
+        "contrast": np.std(img_gray) ** 2,  # Kontras citra (varian)
+        "homogeneity": 1.0 / (1.0 + np.var(img_gray)),  # Homogenitas citra
+        "energy": np.sum(img_gray**2)
+        / (img_gray.shape[0] * img_gray.shape[1]),  # Energi citra
     }
 
     print(
         f"     [F02] LBP features: mean={features['lbp_mean']:.2f}, uniformity={features['lbp_uniformity']:.3f}"
     )
 
-    # Create visualization
+    # Buat visualisasi hasil analisis tekstur
     vis_img = create_texture_visualization(img_gray, lbp, features)
 
     return features, vis_img
@@ -538,21 +527,21 @@ def extract_texture_features(img_gray):
 def create_texture_visualization(img_gray, lbp_image, features):
     """Create LBP texture analysis visualization using matplotlib - MATPLOTLIB ONLY"""
 
-    # Create matplotlib figure untuk LBP analysis yang rapi
+    # Membuat figure matplotlib dengan layout 2x2 untuk analisis LBP
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle("LBP Texture Analysis", fontsize=16, fontweight="bold")
 
-    # 1. Original Grayscale Image
+    # 1. Menampilkan citra grayscale asli
     ax1.imshow(img_gray, cmap="gray")
     ax1.set_title("Original Grayscale", fontsize=12, fontweight="bold")
     ax1.axis("off")
 
-    # 2. LBP Pattern Image
+    # 2. Menampilkan citra hasil LBP (peta pola tekstur)
     ax2.imshow(lbp_image, cmap="hot")
     ax2.set_title("LBP Pattern Map", fontsize=12, fontweight="bold")
     ax2.axis("off")
 
-    # 3. LBP Histogram
+    # 3. Menampilkan histogram distribusi nilai LBP
     lbp_hist, bins = np.histogram(
         lbp_image.ravel(), bins=50, range=(0, np.max(lbp_image))
     )
@@ -571,7 +560,7 @@ def create_texture_visualization(img_gray, lbp_image, features):
     ax3.set_xlim(0, 255)
     ax3.grid(True, alpha=0.3)
 
-    # Add LBP statistics
+    # Menampilkan statistik LBP (mean, std, uniformity) pada histogram
     lbp_stats = f"Mean: {features['lbp_mean']:.2f}\nStd: {features['lbp_std']:.2f}\nUniformity: {features['lbp_uniformity']:.3f}"
     ax3.text(
         0.02,
@@ -583,10 +572,10 @@ def create_texture_visualization(img_gray, lbp_image, features):
         bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
     )
 
-    # 4. Texture Quality Analysis
+    # 4. Analisis kualitas tekstur (indikator dan klasifikasi)
     ax4.axis("off")
 
-    # Create texture quality indicators
+    # Membuat daftar analisis kualitas tekstur berdasarkan fitur LBP
     texture_analysis = [
         f"LBP Mean: {features['lbp_mean']:.2f}",
         f"LBP Std Dev: {features['lbp_std']:.2f}",
@@ -598,7 +587,7 @@ def create_texture_visualization(img_gray, lbp_image, features):
         "Texture Classification:",
     ]
 
-    # Texture type classification
+    # Klasifikasi tipe tekstur berdasarkan nilai uniformity dan std dev
     if features["lbp_uniformity"] > 0.1:
         texture_analysis.append("• Uniform Texture (Synthetic)")
     elif features["lbp_std"] < 10:
@@ -606,6 +595,7 @@ def create_texture_visualization(img_gray, lbp_image, features):
     else:
         texture_analysis.append("• High Variation (Complex)")
 
+    # Klasifikasi pola intensitas LBP
     if features["lbp_mean"] < 10:
         texture_analysis.append("• Low Intensity Pattern")
     elif features["lbp_mean"] > 20:
@@ -613,7 +603,7 @@ def create_texture_visualization(img_gray, lbp_image, features):
     else:
         texture_analysis.append("• Moderate Intensity Pattern")
 
-    # Display analysis text
+    # Menampilkan analisis tekstur pada subplot ke-4
     analysis_text = "\n".join(texture_analysis)
     ax4.text(
         0.1,
@@ -629,18 +619,16 @@ def create_texture_visualization(img_gray, lbp_image, features):
 
     plt.tight_layout()
 
-    # Save to buffer dan convert ke OpenCV format
-
+    # Menyimpan figure ke buffer memory (BytesIO)
     buf = BytesIO()
     plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
     buf.seek(0)
 
-    # Convert buffer to OpenCV image
-
+    # Membaca buffer sebagai gambar PIL, lalu konversi ke format OpenCV (BGR)
     pil_img = Image.open(buf)
     opencv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
-    plt.close()  # Clean memory
+    plt.close()
     buf.close()
 
     return opencv_img
@@ -649,38 +637,39 @@ def create_texture_visualization(img_gray, lbp_image, features):
 def extract_shape_features(img_gray):
     """Extract contour-based shape features"""
 
-    # Binary threshold
+    # Lakukan threshold biner pada citra grayscale
     _, threshold = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
 
-    # Find contours
+    # Temukan kontur pada citra hasil threshold
     contours, _ = cv2.findContours(
         threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
-    # Calculate shape features
+    # Hitung total area dari semua kontur yang signifikan (area > 100 piksel)
     total_area = sum(cv2.contourArea(c) for c in contours if cv2.contourArea(c) > 100)
 
-    shapes_detected = {}
-    circularities = []
-    solidities = []
+    shapes_detected = {}  # Dictionary untuk menyimpan tipe shape yang terdeteksi
+    circularities = []  # List untuk menyimpan nilai circularity setiap kontur
+    solidities = []  # List untuk menyimpan nilai solidity setiap kontur
 
     for i, contour in enumerate(contours):
         area = cv2.contourArea(contour)
-        if area > 100:  # Only significant contours
-            # Calculate circularity
+        if area > 100:
+            # Hitung keliling kontur
             perimeter = cv2.arcLength(contour, True)
             if perimeter > 0:
+                # Hitung circularity (kelingkaran) kontur
                 circularity = 4 * np.pi * area / (perimeter * perimeter)
                 circularities.append(circularity)
 
-                # Calculate solidity
+                # Hitung solidity (kepadatan) kontur
                 hull = cv2.convexHull(contour)
                 hull_area = cv2.contourArea(hull)
                 if hull_area > 0:
                     solidity = area / hull_area
                     solidities.append(solidity)
 
-                # Classify shape based on circularity
+                # Klasifikasikan bentuk berdasarkan nilai circularity
                 if circularity > 0.7:
                     shapes_detected[i] = "Circle"
                 elif circularity > 0.5:
@@ -688,7 +677,7 @@ def extract_shape_features(img_gray):
                 else:
                     shapes_detected[i] = "Irregular"
 
-    # Overall features
+    # Hitung fitur-fitur shape secara keseluruhan
     features = {
         "total_shapes": len([c for c in contours if cv2.contourArea(c) > 100]),
         "total_area": total_area,
@@ -699,14 +688,13 @@ def extract_shape_features(img_gray):
         )
         if shapes_detected
         else "None",
-        "aspect_ratio": 1.0,  # Default value
+        "aspect_ratio": 1.0,
     }
 
     print(
         f"     [F03] Shape features: {features['total_shapes']} shapes, circularity={features['circularity']:.3f}"
     )
 
-    # Create visualization
     vis_img = create_shape_identification_visualization(
         img_gray, threshold, contours, features, shapes_detected
     )
@@ -719,36 +707,38 @@ def create_shape_identification_visualization(
 ):
     """Create shape analysis visualization using matplotlib - MATPLOTLIB ONLY"""
 
-    # Create matplotlib figure untuk shape analysis yang rapi
+    # Membuat figure matplotlib dengan layout 2x2 untuk analisis shape
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle("Shape Identification Analysis", fontsize=16, fontweight="bold")
 
-    # 1. Original Grayscale
+    # 1. Menampilkan citra grayscale asli
     ax1.imshow(img_gray, cmap="gray")
     ax1.set_title("Original Grayscale", fontsize=12, fontweight="bold")
     ax1.axis("off")
 
-    # 2. Binary Threshold
+    # 2. Menampilkan hasil threshold biner
     ax2.imshow(threshold, cmap="gray")
     ax2.set_title("Binary Threshold", fontsize=12, fontweight="bold")
     ax2.axis("off")
 
-    # 3. Contour Detection dengan Color-coding
+    # 3. Menampilkan deteksi kontur dengan pewarnaan berbeda
     ax3.imshow(img_gray, cmap="gray")
 
+    # Daftar warna untuk membedakan kontur
     colors = ["red", "blue", "green", "yellow", "orange", "purple", "cyan", "magenta"]
 
     for i, contour in enumerate(contours):
-        if cv2.contourArea(contour) > 100:  # Only significant contours
+        if cv2.contourArea(contour) > 100:
             color = colors[i % len(colors)]
 
-            # Draw contour
+            # Mengambil titik-titik kontur
             contour_points = contour.reshape(-1, 2)
+            # Menggambar kontur pada subplot
             ax3.plot(
                 contour_points[:, 0], contour_points[:, 1], color=color, linewidth=2
             )
 
-            # Add shape label
+            # Menambahkan label tipe shape pada tengah bounding box kontur
             x, y, w, h = cv2.boundingRect(contour)
             shape_type = shapes_detected.get(i, "Unknown")
             ax3.text(
@@ -766,10 +756,10 @@ def create_shape_identification_visualization(
     ax3.set_title("Detected Contours & Shapes", fontsize=12, fontweight="bold")
     ax3.axis("off")
 
-    # 4. Shape Analysis Summary
+    # 4. Ringkasan analisis shape
     ax4.axis("off")
 
-    # Create shape analysis summary
+    # Membuat ringkasan analisis shape
     shape_analysis = [
         f"Total Shapes: {features['total_shapes']}",
         f"Dominant Shape: {features['dominant_shape']}",
@@ -781,7 +771,7 @@ def create_shape_identification_visualization(
         "Shape Distribution:",
     ]
 
-    # Count shapes by type
+    # Menghitung jumlah masing-masing tipe shape
     shape_counts = {}
     for shape_type in shapes_detected.values():
         shape_counts[shape_type] = shape_counts.get(shape_type, 0) + 1
@@ -796,7 +786,7 @@ def create_shape_identification_visualization(
         ]
     )
 
-    # Shape-based classification hints
+    # Indikator klasifikasi berdasarkan fitur shape
     if features["circularity"] > 0.7:
         shape_analysis.append("• High Circularity (Round objects)")
     elif features["circularity"] < 0.3:
@@ -810,7 +800,7 @@ def create_shape_identification_visualization(
     if features["total_shapes"] > 5:
         shape_analysis.append("• Multiple fragments detected")
 
-    # Display analysis text
+    # Menampilkan ringkasan analisis pada subplot ke-4
     analysis_text = "\n".join(shape_analysis)
     ax4.text(
         0.1,
@@ -826,18 +816,16 @@ def create_shape_identification_visualization(
 
     plt.tight_layout()
 
-    # Save to buffer dan convert ke OpenCV format
-
+    # Menyimpan figure ke buffer memory (BytesIO)
     buf = BytesIO()
     plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
     buf.seek(0)
 
-    # Convert buffer to OpenCV image
-
+    # Membaca buffer sebagai gambar PIL, lalu konversi ke format OpenCV (BGR)
     pil_img = Image.open(buf)
     opencv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
-    plt.close()  # Clean memory
+    plt.close()
     buf.close()
 
     return opencv_img
@@ -846,10 +834,10 @@ def create_shape_identification_visualization(
 def apply_preprocessing_pipeline(img_rgb):
     """Apply complete preprocessing pipeline dengan 8 metode"""
 
-    # 1. Image quality analysis
+    # Analisis kualitas gambar
     analysis = analyze_image_quality(img_rgb)
 
-    # 2. Apply adaptive preprocessing
+    # preprocessing adaptif berdasarkan hasil analisis
     preprocessed_img, preprocessing_steps = adaptive_preprocessing(img_rgb, analysis)
 
     return preprocessed_img, preprocessing_steps, analysis

@@ -20,7 +20,7 @@ from polyester_detection import classify_material, load_polyester_dataset
 
 def create_result_folder(image_path, index):
     """Create a result folder for each processed image"""
-    base_name = os.path.splitext(os.path.basename(image_path))[0]
+    base_name = os.path.splitext(os.path.basename(image_path))[0]  # Ambil nama file
     result_folder = os.path.join("output", f"{index:03d}_{base_name}")
     os.makedirs(result_folder, exist_ok=True)
     return result_folder
@@ -28,8 +28,10 @@ def create_result_folder(image_path, index):
 
 def ensure_folders():
     """Ensure required folders exist"""
+    # Daftar folder yang harus dipastikan ada
     folders = ["samples", "output", "dataset"]
     for folder in folders:
+        # Jika folder belum ada, maka buat folder tersebut
         if not os.path.exists(folder):
             os.makedirs(folder)
             print(f"CREATED folder: {folder}")
@@ -41,14 +43,19 @@ def get_image_files():
     image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff")
     image_files = []
 
+    # Cek apakah folder samples ada
     if not os.path.exists(samples_folder):
         print(f"ERROR: Samples folder '{samples_folder}' not found!")
         return []
 
+    # Iterasi semua file di folder samples
     for file in os.listdir(samples_folder):
+        # Cek apakah ekstensi file termasuk gambar yang didukung
         if file.lower().endswith(image_extensions):
+            # Tambahkan path file gambar ke list
             image_files.append(os.path.join(samples_folder, file))
 
+    # Kembalikan daftar file gambar yang sudah diurutkan
     return sorted(image_files)
 
 
@@ -191,32 +198,32 @@ def create_classification_visualization_with_bbox(
     """Create classification result visualization using matplotlib - PROFESSIONAL VERSION"""
 
     try:
-        # Matplotlib figure untuk klasifikasi
+        # Membuat figure matplotlib dengan 2 subplot (kiri: gambar, kanan: dashboard analisis)
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
         fig.suptitle(
             "POLYESTER DETECTION CLASSIFICATION RESULT", fontsize=18, fontweight="bold"
         )
 
-        # Classification info
+        # Mengambil informasi klasifikasi dari hasil deteksi
         classification = classification_result.get("classification", "UNKNOWN")
         confidence = classification_result.get("confidence", 0)
         method = classification_result.get("method", "Unknown")
         score = classification_result.get("score", 0)
         max_score = classification_result.get("max_score", 18)
 
-        # Get bounding boxes
+        # Mendapatkan bounding box dari hasil deteksi objek
         bounding_boxes = generate_bounding_boxes_for_classification(
             img_rgb, shape_features, classification_result
         )
 
-        # Sisi Kiri: Original image dengan bounding boxes
+        # Sisi Kiri: Menampilkan gambar asli beserta bounding box deteksi
         ax1.imshow(img_rgb)
         ax1.set_title(
             "Detection Results with Bounding Boxes", fontsize=14, fontweight="bold"
         )
         ax1.axis("off")
 
-        # Draw bounding boxes di matplotlib
+        # Menggambar bounding box pada gambar jika ada deteksi polyester
         if bounding_boxes and classification in ["POLYESTER", "POSSIBLE_POLYESTER"]:
             colors = ["red", "lime", "yellow", "cyan", "magenta", "orange"]
 
@@ -237,7 +244,7 @@ def create_classification_visualization_with_bbox(
                     box_color = "orange"
                     label = f"FRAGMENT-{i + 1}: {bbox_conf:.0f}%"
 
-                # Draw bounding box
+                # Menggambar rectangle (bounding box) pada gambar
                 from matplotlib.patches import Rectangle
 
                 rect = Rectangle(
@@ -250,7 +257,7 @@ def create_classification_visualization_with_bbox(
                 )
                 ax1.add_patch(rect)
 
-                # Add label with background
+                # Menambahkan label pada setiap bounding box
                 ax1.text(
                     x,
                     y - 5,
@@ -261,20 +268,20 @@ def create_classification_visualization_with_bbox(
                     color="black",
                 )
 
-        # Sisi Kanan: Comprehensive Analysis Dashboard
+        # Sisi Kanan: Dashboard analisis klasifikasi
         ax2.axis("off")
         ax2.set_title(
             "Classification Analysis Dashboard", fontsize=14, fontweight="bold"
         )
 
-        # Create analysis sections
+        # Membuat list untuk menampung bagian-bagian analisis
         analysis_sections = []
 
-        # Section 1: Detection Summary
+        # Bagian 1: Ringkasan deteksi
         analysis_sections.append("TARGET DETECTION SUMMARY")
         analysis_sections.append("=" * 30)
 
-        # Color-coded classification
+        # Menentukan warna dan label berdasarkan hasil klasifikasi
         if classification == "POLYESTER":
             class_display = "CHECK POLYESTER DETECTED"
             class_color = "green"
@@ -293,12 +300,12 @@ def create_classification_visualization_with_bbox(
         )
         analysis_sections.append("")
 
-        # Section 2: Method Information
+        # Bagian 2: Informasi metode deteksi
         analysis_sections.append("SEARCH DETECTION METHOD")
         analysis_sections.append("=" * 30)
         analysis_sections.append(f"Primary Method: {method}")
 
-        # Template matching info
+        # Menampilkan info template matching jika ada
         if "template_info" in classification_result:
             analysis_sections.append(
                 f"Template Info: {classification_result['template_info']}"
@@ -314,7 +321,7 @@ def create_classification_visualization_with_bbox(
 
         analysis_sections.append("")
 
-        # Section 3: Confidence Indicators
+        # Bagian 3: Indikator kepercayaan (confidence indicators)
         if "reasons" in classification_result and classification_result["reasons"]:
             analysis_sections.append("CHART CONFIDENCE INDICATORS")
             analysis_sections.append("=" * 30)
@@ -322,11 +329,11 @@ def create_classification_visualization_with_bbox(
                 analysis_sections.append(f"• {reason}")
             analysis_sections.append("")
 
-        # Section 4: Feature Analysis Summary
+        # Bagian 4: Ringkasan analisis fitur bentuk
         analysis_sections.append("TRENDING FEATURE ANALYSIS")
         analysis_sections.append("=" * 30)
 
-        # Add shape feature info
+        # Menambahkan informasi fitur bentuk (shape)
         total_shapes = shape_features.get("total_shapes", 0)
         circularity = shape_features.get("circularity", 0)
         dominant_shape = shape_features.get("dominant_shape", "None")
@@ -335,7 +342,7 @@ def create_classification_visualization_with_bbox(
         analysis_sections.append(f"Dominant Shape: {dominant_shape}")
         analysis_sections.append(f"Avg Circularity: {circularity:.3f}")
 
-        # Classification hint
+        # Memberikan hint tambahan berdasarkan fitur bentuk
         if total_shapes > 5:
             analysis_sections.append("• Multiple fragments (typical for polyester)")
         if circularity < 0.5:
@@ -343,14 +350,14 @@ def create_classification_visualization_with_bbox(
 
         analysis_sections.append("")
 
-        # Section 5: Material Properties
+        # Bagian 5: Properti material hasil deteksi
         analysis_sections.append("TEST MATERIAL PROPERTIES")
         analysis_sections.append("=" * 30)
 
         material_type = classification_result.get("material_type", "UNKNOWN").upper()
         analysis_sections.append(f"Material Type: {material_type}")
 
-        # Add specific polyester indicators
+        # Menambahkan indikator khusus jika polyester terdeteksi
         if classification in ["POLYESTER", "POSSIBLE_POLYESTER"]:
             analysis_sections.append("• Synthetic polymer detected")
             analysis_sections.append("• Consistent with polyester properties")
@@ -359,10 +366,10 @@ def create_classification_visualization_with_bbox(
             analysis_sections.append("• Natural or unknown material")
             analysis_sections.append("• Does not match polyester profile")
 
-        # Display all analysis text
+        # Menggabungkan seluruh analisis menjadi satu string
         analysis_text = "\n".join(analysis_sections)
 
-        # Create text box with proper styling
+        # Membuat text box dengan styling khusus untuk dashboard analisis
         text_props = dict(
             boxstyle="round,pad=0.8",
             facecolor="lightblue",
@@ -382,7 +389,7 @@ def create_classification_visualization_with_bbox(
             bbox=text_props,
         )
 
-        # Add status indicator in corner
+        # Menambahkan indikator status (persentase confidence) di pojok dashboard
         status_props = dict(boxstyle="round,pad=0.5", facecolor=class_color, alpha=0.8)
         ax2.text(
             0.95,
@@ -399,14 +406,14 @@ def create_classification_visualization_with_bbox(
 
         plt.tight_layout()
 
-        # Save to buffer dan convert ke OpenCV format
+        # Menyimpan hasil visualisasi ke buffer (memory) dan mengkonversi ke format OpenCV
         from io import BytesIO
 
         buf = BytesIO()
         plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
         buf.seek(0)
 
-        # Convert buffer to OpenCV image
+        # Membaca buffer sebagai gambar PIL, lalu konversi ke numpy array (OpenCV)
         from PIL import Image
 
         pil_img = Image.open(buf)
@@ -418,6 +425,7 @@ def create_classification_visualization_with_bbox(
         return opencv_img
 
     except Exception as e:
+        # Menampilkan error jika gagal membuat visualisasi
         print(f"     ERROR creating classification visualization: {e}")
         raise e
 
@@ -427,21 +435,24 @@ def generate_bounding_boxes_for_classification(
 ):
     """Generate bounding boxes specifically for classification visualization"""
 
-    # Convert to grayscale untuk contour detection
+    # Konversi gambar ke grayscale untuk deteksi kontur
     img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+    # Melakukan thresholding untuk mendapatkan citra biner
     _, threshold = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
+    # Mencari kontur pada citra hasil threshold
     contours, _ = cv2.findContours(
         threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
     bounding_boxes = []
 
-    # Only generate bounding boxes if classified as polyester
+    # Hanya menghasilkan bounding box jika hasil klasifikasi adalah polyester
     classification = classification_result.get("classification", "UNKNOWN")
     if classification in ["POLYESTER", "POSSIBLE_POLYESTER"]:
         for contour in contours:
             area = cv2.contourArea(contour)
-            if area > 500:  # Only significant objects
+            # Hanya objek dengan area signifikan yang diambil
+            if area > 500:  # Hanya objek yang cukup besar
                 x, y, w, h = cv2.boundingRect(contour)
                 bounding_boxes.append((x, y, w, h))
 
@@ -451,13 +462,14 @@ def generate_bounding_boxes_for_classification(
 def standardize_image_size(img_rgb, target_height=400):
     """Standardize image size untuk konsistensi output"""
 
+    # Mengambil tinggi (h) dan lebar (w) dari gambar
     h, w = img_rgb.shape[:2]
 
-    # Calculate new width maintaining aspect ratio
+    # Menghitung rasio aspek gambar dan Menentukan lebar target
     aspect_ratio = w / h
     target_width = int(target_height * aspect_ratio)
 
-    # Resize image
+    # Melakukan resize gambar
     resized_img = cv2.resize(
         img_rgb, (target_width, target_height), interpolation=cv2.INTER_AREA
     )
@@ -466,7 +478,7 @@ def standardize_image_size(img_rgb, target_height=400):
 
 
 def process_single_image(image_path, index, polyester_templates):
-    """Process single image - FLOW TIDAK BERUBAH, hanya color feature yang auto-convert"""
+    """Process single image and save results"""
 
     filename = os.path.basename(image_path)
     name_only = os.path.splitext(filename)[0]
@@ -475,26 +487,27 @@ def process_single_image(image_path, index, polyester_templates):
     os.makedirs(result_folder, exist_ok=True)
 
     try:
-        # 1. Load and convert image
+        # Menampilkan proses pemrosesan gambar
         print(f"\nProcessing image {index}: {filename}")
         print("   1. Loading and converting to RGB...")
 
+        # Membaca gambar dalam format BGR
         img_bgr = cv2.imread(image_path)
         if img_bgr is None:
             raise ValueError(f"Cannot load image: {image_path}")
 
-        # Convert BGR to RGB
+        # Konversi gambar ke format RGB
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
         print(f"   2. Original image shape: {img_rgb.shape}")
 
-        # Standardize image size
+        # Standarisasi ukuran gambar untuk konsistensi output
         img_rgb = standardize_image_size(img_rgb, target_height=400)
         print(f"   3. Standardized to size: {img_rgb.shape}")
 
-        # Store results
+        # Menyimpan gambar asli (dalam format BGR untuk OpenCV)
         results = {"original": cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)}
 
-        # 2. Preprocessing (8 metode) - TETAP SAMA
+        # Melakukan preprocessing pipeline (8 metode)
         print("   4. Applying preprocessing pipeline (8 methods)...")
         preprocessed_img, preprocessing_steps, quality_analysis = (
             apply_preprocessing_pipeline(img_rgb)
@@ -503,28 +516,25 @@ def process_single_image(image_path, index, polyester_templates):
         results["preprocessed"] = cv2.cvtColor(preprocessed_img, cv2.COLOR_RGB2BGR)
         results["quality_analysis"] = quality_analysis
 
-        # 3. Feature extraction
+        # Konversi gambar hasil preprocessing ke grayscale
         img_gray = cv2.cvtColor(preprocessed_img, cv2.COLOR_RGB2GRAY)
 
-        # RGB COLOR FEATURES - AUTO HANDLE GRAYSCALE/RGB
-        print("   5. Extracting RGB histogram features...")
-        # PASS APAPUN (RGB atau grayscale), function akan handle auto-conversion
-        color_features, color_img = extract_color_features(
-            preprocessed_img
-        )  # Auto-handle di dalam function
+        # Ekstraksi fitur warna menggunakan histogram Grayscale
+        print("   5. Extracting Grayscale histogram features...")
+        color_features, color_img = extract_color_features(preprocessed_img)
         results["color_features"] = cv2.cvtColor(color_img, cv2.COLOR_RGB2BGR)
 
-        # LBP TEXTURE FEATURES - TETAP SAMA (gunakan grayscale)
+        # Ekstraksi fitur tekstur menggunakan LBP
         print("   6. Extracting LBP texture features...")
         texture_features, texture_img = extract_texture_features(img_gray)
         results["texture_features"] = texture_img
 
-        # SHAPE FEATURES - TETAP SAMA (gunakan grayscale)
+        # Ekstraksi fitur bentuk menggunakan Contour
         print("   7. Extracting contour shape identification...")
         shape_features, shape_img = extract_shape_features(img_gray)
         results["shape_features"] = shape_img
 
-        # 4. Classification - TETAP SAMA
+        # Melakukan klasifikasi material polyester
         print("   8. Detecting polyester material...")
         (
             classification_result,
@@ -532,39 +542,43 @@ def process_single_image(image_path, index, polyester_templates):
             extracted_texture_features,
             extracted_shape_features,
         ) = classify_material(
-            preprocessed_img,  # Tetap pass preprocessed_img
+            preprocessed_img,
             polyester_templates,
         )
 
-        # Create classification visualization
+        # Membuat visualisasi hasil klasifikasi dengan bounding box
         classification_viz = create_classification_visualization_with_bbox(
             preprocessed_img, classification_result, shape_features
         )
 
+        # Menyimpan hasil klasifikasi dan visualisasinya
         results["classification"] = classification_result
         results["classification_result"] = cv2.cvtColor(
             classification_viz, cv2.COLOR_RGB2BGR
         )
 
-        # 5. Save all results - TETAP SAMA
+        # Menyimpan seluruh hasil pemrosesan ke folder output
         print("   9. Saving results...")
         save_processing_results(result_folder, results)
 
-        # Enhanced output
+        # Mengambil hasil klasifikasi dan tingkat kepercayaan
         classification = classification_result.get("classification", "UNKNOWN")
         confidence = classification_result.get("confidence", 0)
 
+        # Menghitung jumlah objek yang terdeteksi (bounding box)
         bounding_boxes = generate_bounding_boxes_for_classification(
             preprocessed_img, shape_features, classification_result
         )
         num_objects = len(bounding_boxes)
 
+        # Menampilkan hasil klasifikasi dan jumlah objek
         print(f"   10. {classification} - {confidence:.1f}% confidence")
         print(f"   11. {num_objects} objects detected")
 
         return True
 
     except Exception as e:
+        # Menangani error jika terjadi kegagalan pemrosesan
         print(f"   ERROR Error processing {filename}: {str(e)}")
         return False
 
@@ -600,22 +614,24 @@ def print_methods_summary():
 
 
 def main():
+    # Mulai pipeline deteksi polyester
     print("Starting Enhanced Polyester Detection Pipeline")
     print("=" * 60)
 
-    # Print methods summary
+    # Menampilkan ringkasan metode yang digunakan
     print_methods_summary()
 
-    # Ensure required folders exist
+    # Memastikan folder yang dibutuhkan sudah ada
     ensure_folders()
 
-    # LOAD DATASET TEMPLATES ONCE - MOVE HERE
+    # Memuat dataset template polyester dari folder dataset
     print("\n[FOLDER] Loading polyester template dataset...")
     polyester_templates = load_polyester_dataset("dataset")
 
-    # Get all image files
+    # Mengambil semua file gambar dari folder samples
     image_files = get_image_files()
 
+    # Mengecek jumlah gambar, minimal harus ada 60 gambar
     if len(image_files) < 60:
         print(
             f"\nWARNING Warning: Only {len(image_files)} images found. Minimum 60 required."
@@ -628,26 +644,28 @@ def main():
     else:
         print(f"\nFILES Found {len(image_files)} RGB images for processing")
 
-    # Process all images
+    # Memproses semua gambar satu per satu
     print(f"\nStarting processing of {len(image_files)} images...")
     successful = 0
     failed = 0
     polyester_detected = 0
     possible_polyester = 0
 
+    # Melakukan iterasi pada setiap gambar
     for index, image_path in enumerate(image_files, 1):
+        # Memproses satu gambar
         success = process_single_image(image_path, index, polyester_templates)
 
         if success:
             successful += 1
 
-            # Check classification result
+            # Mengecek hasil klasifikasi dari laporan
             try:
                 filename = os.path.basename(image_path)
                 name_only = os.path.splitext(filename)[0]
                 result_folder = os.path.join("output", f"{index:03d}_{name_only}")
 
-                # Read classification report to check detection
+                # Membaca file laporan klasifikasi untuk mengetahui hasil deteksi
                 report_path = os.path.join(
                     result_folder, "08_classification_report.txt"
                 )
@@ -659,15 +677,15 @@ def main():
                         elif "Classification: POSSIBLE_POLYESTER" in content:
                             possible_polyester += 1
             except:
-                pass  # Skip if cannot read report
+                pass  # Lewati jika gagal membaca laporan
         else:
             failed += 1
 
-        # Progress indicator every 10 images
+        # Menampilkan progress setiap 10 gambar
         if index % 10 == 0:
             print(f"   Progress: {index}/{len(image_files)} images processed")
 
-    # Final summary
+    # Menampilkan ringkasan akhir hasil deteksi
     print("\n" + "=" * 60)
     print("ENHANCED POLYESTER DETECTION SUMMARY")
     print("=" * 60)
@@ -680,19 +698,18 @@ def main():
         f"NOT_POLYESTER: {successful - polyester_detected - possible_polyester} images"
     )
 
-    # Detection rate
+    # Menghitung dan menampilkan tingkat deteksi polyester
     if successful > 0:
         detection_rate = ((polyester_detected + possible_polyester) / successful) * 100
         print(f"Detection rate: {detection_rate:.1f}%")
 
+    # Menampilkan lokasi hasil output
     print(f"\nResults saved in: output/ folder")
     print(f"Each result folder contains:")
     print("   • 01_original.jpg - Original image")
     print("   • 02_XX_method.jpg - Preprocessing steps")
     print("   • 03_final_preprocessed.jpg - Final preprocessed")
-    print(
-        "   • 04_color_features.jpg - Grayscale histogram analysis"
-    )  # ✅ DIUBAH dari RGB ke Grayscale
+    print("   • 04_color_features.jpg - Grayscale histogram analysis")
     print("   • 05_texture_features.jpg - LBP texture analysis")
     print("   • 06_shape_features.jpg - Contour shape analysis")
     print("   • 07_classification_result.jpg - Classification visualization")
@@ -700,13 +717,13 @@ def main():
 
     print("\nProcessing completed!")
 
+    # Menampilkan contoh hasil deteksi dari beberapa gambar pertama
     if successful > 0:
-        # Show sample results
         print(f"\nSAMPLE RESULTS:")
         sample_count = min(3, successful)
         for i in range(1, sample_count + 1):
             try:
-                # Find first successful result folder
+                # Mencari folder hasil untuk gambar ke-i
                 output_folders = [
                     f for f in os.listdir("output") if f.startswith(f"{i:03d}_")
                 ]

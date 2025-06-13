@@ -14,23 +14,23 @@ Program ini mengimplementasikan sistem deteksi sampah tekstil polyester di lingk
 ## 🚀 Fitur Utama
 
 ### ✨ **Adaptive Preprocessing (8 Metode Manual)**
-- **Manual Brightness Adjustment** - untuk kondisi gelap
-- **Manual Contrast Enhancement** - untuk kondisi underwater/murky
-- **Manual Contrast Stretching** - untuk kontras rendah
-- **Manual Histogram Equalization** - untuk pencahayaan tidak merata
-- **Manual Median Filter 7x7** - untuk noise dan debris
-- **Manual Gaussian Filter 5x5** - untuk smoothing
-- **Morphological Opening** - untuk debris removal
-- **Laplacian Sharpening** - untuk blur dan wet condition
+- **Manual Brightness Adjustment** - untuk kondisi gelap 1
+- **Manual Contrast Enhancement** - untuk kondisi underwater/murky 1
+- **Manual Contrast Stretching** - untuk kontras rendah 1
+- **Manual Histogram Equalization** - untuk pencahayaan tidak merata 1
+- **Manual Median Filter 7x7** - untuk noise dan debris 2
+- **Manual Gaussian Filter 5x5** - untuk smoothing 2
+- **Morphological Opening** - untuk debris removal 2
+- **Laplacian Sharpening** - untuk blur dan wet condition 3
 
 ### 📊 **Ekstraksi Fitur Komprehensif**
-- **Fitur Warna**: RGB Histogram (12 fitur)
-- **Fitur Tekstur**: Local Binary Pattern/LBP (14 fitur)
-- **Fitur Bentuk**: Contour Analysis (9 fitur)
+- **Fitur Warna**: Grayscale Histogram (8 fitur) 3
+- **Fitur Tekstur**: Local Binary Pattern/LBP (14 fitur) 3
+- **Fitur Bentuk**: Contour Analysis (9 fitur) 4
 
 ### 🎯 **Klasifikasi Hybrid (2 Metode)**
-- **Template Matching**: Cross-correlation dengan dataset polyester
-- **Rule-based Classification**: 12 rules berbasis karakteristik polyester
+- **Template Matching**: Cross-correlation dengan dataset polyester 4
+- **Rule-based Classification**: 12 rules berbasis karakteristik polyester 4
 
 ### 🗃️ **Database Kondisi Kompleks**
 - Environmental contexts: clear_water, murky_water, various_lighting, with_debris

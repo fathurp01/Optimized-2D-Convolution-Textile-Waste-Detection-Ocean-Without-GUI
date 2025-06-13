@@ -70,7 +70,7 @@ def load_polyester_dataset(dataset_path="dataset"):
 
     # Fallback: load dari root dataset jika struktur folder kosong
     if templates_loaded == 0:
-        print("📁 Using flat dataset structure...")
+        print("[FALLBACK] Using flat dataset structure...")
         for file in os.listdir(dataset_path):
             if file.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".webp")):
                 file_path = os.path.join(dataset_path, file)
@@ -118,64 +118,64 @@ def enhanced_rule_based_classification(
     # GRAYSCALE COLOR RULES (4 rules) - SESUAI REFERENSI A9
     # ============================================================================
 
-    # Rule 1: Grayscale Brightness analysis (polyester cenderung bright/synthetic)
+    # Rule 1: Analisis kecerahan grayscale (polyester cenderung cerah/sintetis)
     brightness = color_features.get("brightness", 0)
-    if 100 <= brightness <= 180:  # Moderate to bright (synthetic look)
+    if 100 <= brightness <= 180:  # Cerah sedang hingga terang (tampilan sintetis)
         score += 2
         reasons.append("[R01] Synthetic brightness range (100-180)")
-    elif brightness > 180:  # Very bright (possible polyester)
+    elif brightness > 180:  # Sangat terang (kemungkinan polyester)
         score += 1
         reasons.append("[R01] High synthetic brightness (>180)")
 
-    # Rule 2: Grayscale contrast analysis (synthetic uniformity)
+    # Rule 2: Analisis kontras grayscale (keseragaman sintetis)
     contrast = color_features.get("contrast", 0)
-    if 20 <= contrast <= 60:  # Moderate contrast (synthetic)
+    if 20 <= contrast <= 60:  # Kontras sedang (sintetis)
         score += 2
         reasons.append("[R02] Moderate contrast (synthetic material)")
-    elif contrast < 20:  # Very uniform (possible polyester)
+    elif contrast < 20:  # Sangat seragam (kemungkinan polyester)
         score += 1
         reasons.append("[R02] High uniformity (synthetic)")
 
-    # Rule 3: Grayscale peak analysis (histogram peak position)
+    # Rule 3: Analisis puncak grayscale (posisi puncak histogram)
     gray_peak = color_features.get("gray_peak", 0)
-    if 80 <= gray_peak <= 200:  # Typical synthetic range
+    if 80 <= gray_peak <= 200:  # Rentang sintetis tipikal
         score += 1
         reasons.append("[R03] Synthetic grayscale peak distribution")
 
-    # Rule 4: Grayscale mean analysis (overall intensity)
+    # Rule 4: Analisis rata-rata grayscale (intensitas keseluruhan)
     gray_mean = color_features.get("gray_mean", 0)
-    if 90 <= gray_mean <= 170:  # Typical polyester range
+    if 90 <= gray_mean <= 170:  # Rentang polyester tipikal
         score += 1
         reasons.append("[R04] Typical polyester brightness")
 
     # ============================================================================
-    # LBP TEXTURE RULES (4 rules) - TEXTURE ANALYSIS
+    # LBP TEXTURE RULES (4 rules) - ANALISIS TEKSTUR
     # ============================================================================
 
-    # Rule 5: LBP uniformity (polyester has uniform texture)
+    # Rule 5: Uniformitas LBP (polyester memiliki tekstur seragam)
     lbp_uniformity = texture_features.get("lbp_uniformity", 0)
-    if lbp_uniformity > 0.1:  # High uniformity
+    if lbp_uniformity > 0.1:  # Uniformitas tinggi
         score += 2
         reasons.append("[R05] High texture uniformity (LBP)")
     elif lbp_uniformity > 0.05:
         score += 1
         reasons.append("[R05] Moderate texture uniformity")
 
-    # Rule 6: LBP mean analysis (synthetic texture patterns)
+    # Rule 6: Analisis rata-rata LBP (pola tekstur sintetis)
     lbp_mean = texture_features.get("lbp_mean", 0)
-    if 5 <= lbp_mean <= 15:  # Typical synthetic range
+    if 5 <= lbp_mean <= 15:  # Rentang sintetis tipikal
         score += 1
         reasons.append("[R06] Synthetic texture pattern (LBP mean)")
 
-    # Rule 7: LBP standard deviation (synthetic consistency)
+    # Rule 7: Standar deviasi LBP (konsistensi sintetis)
     lbp_std = texture_features.get("lbp_std", 0)
-    if lbp_std < 10:  # Low variation (synthetic)
+    if lbp_std < 10:  # Variasi rendah (sintetis)
         score += 1
         reasons.append("[R07] Low texture variation (synthetic)")
 
-    # Rule 8: Texture contrast (material surface properties)
+    # Rule 8: Kontras tekstur (sifat permukaan material)
     texture_contrast = texture_features.get("contrast", 0)
-    if texture_contrast > 500:  # High texture contrast (synthetic material)
+    if texture_contrast > 500:  # Kontras tekstur tinggi (material sintetis)
         score += 1
         reasons.append("[R08] High texture contrast (synthetic)")
 
@@ -183,34 +183,34 @@ def enhanced_rule_based_classification(
     # SHAPE RULES (4 rules) - SESUAI REFERENSI H3
     # ============================================================================
 
-    # Rule 9: Shape count analysis (polyester fragments)
+    # Rule 9: Analisis jumlah bentuk (fragmen polyester)
     total_shapes = shape_features.get("total_shapes", 0)
-    if 1 <= total_shapes <= 10:  # Reasonable fragment count
+    if 1 <= total_shapes <= 10:  # Jumlah fragmen yang wajar
         score += 1
         reasons.append("[R09] Reasonable fragment count")
 
-    # Rule 10: Circularity analysis (plastic fragments characteristics)
+    # Rule 10: Analisis circularity (karakteristik fragmen plastik)
     circularity = shape_features.get("circularity", 0)
-    if 0.1 <= circularity <= 0.8:  # Moderate circularity (fragments)
+    if 0.1 <= circularity <= 0.8:  # Circularity sedang (fragmen)
         score += 1
         reasons.append("[R10] Fragment-like circularity")
 
-    # Rule 11: Solidity analysis (plastic material characteristics)
+    # Rule 11: Analisis solidity (karakteristik material plastik)
     solidity = shape_features.get("solidity", 0)
-    if solidity > 0.7:  # Solid objects (not hollow)
+    if solidity > 0.7:  # Objek solid (tidak berongga)
         score += 1
         reasons.append("[R11] Solid material characteristic")
 
-    # Rule 12: Area analysis (size-based classification)
+    # Rule 12: Analisis area (klasifikasi berbasis ukuran)
     total_area = shape_features.get("total_area", 0)
-    if total_area > 1000:  # Significant area coverage
+    if total_area > 1000:  # Area material signifikan
         score += 1
         reasons.append("[R12] Significant material area")
 
-    # Calculate confidence
+    # Hitung confidence
     confidence = (score / max_score) * 100
 
-    # Classification decision
+    # Keputusan klasifikasi
     if confidence >= 60:
         classification = "POLYESTER"
         material_type = "POLYESTER"
@@ -235,7 +235,7 @@ def enhanced_rule_based_classification(
 def template_matching_classification(img_rgb, polyester_templates, threshold=0.4):
     """Template matching classification using normalized cross-correlation"""
 
-    # Handle empty templates
+    # Handle jika template kosong
     if not polyester_templates or len(polyester_templates) == 0:
         return {
             "classification": "NOT_POLYESTER",
@@ -251,48 +251,50 @@ def template_matching_classification(img_rgb, polyester_templates, threshold=0.4
     best_score = 0
     best_category = "unknown"
 
-    # Convert input to grayscale for template matching
     img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
     h, w = img_gray.shape
 
     matches_found = 0
 
     for template_data in polyester_templates:
-        # Handle template data
+        # Ambil data template
         if isinstance(template_data, dict) and "image" in template_data:
             template_img = template_data["image"]
             category = template_data.get("category", "unknown")
         else:
-            print(f"⚠️ Skipping invalid template: {template_data}")
+            print(f"[WARNING] Skipping invalid template: {template_data}")
             continue
 
-        # Validate template image
+        # Validasi gambar template
         if template_img is None:
             continue
 
-        # Convert template to grayscale
+        # Konversi template ke grayscale jika perlu
         if len(template_img.shape) == 3:
             template_gray = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
         else:
             template_gray = template_img
 
-        # Resize template to match input image size for fair comparison
+        # Resize template agar ukurannya sama dengan input
         template_resized = cv2.resize(template_gray, (w, h))
 
-        # Perform template matching using normalized cross-correlation
+        # Lakukan template matching dengan normalized cross-correlation
         result = cv2.matchTemplate(img_gray, template_resized, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, _ = cv2.minMaxLoc(result)
 
+        # Simpan skor terbaik dan kategori jika ditemukan
         if max_val > best_score:
             best_score = max_val
             best_category = category
             best_match = template_data
 
+        # Hitung jumlah template yang melewati threshold
         if max_val > threshold:
             matches_found += 1
 
+    # Jika skor terbaik melewati threshold, anggap sebagai polyester
     if best_score > threshold:
-        confidence = min(best_score * 100, 95)  # Cap at 95%
+        confidence = min(best_score * 100, 95)  # Confidence dibatasi maksimal 95%
 
         return {
             "classification": "POLYESTER" if confidence > 60 else "POSSIBLE_POLYESTER",
@@ -304,6 +306,7 @@ def template_matching_classification(img_rgb, polyester_templates, threshold=0.4
             "method": f"Template Matching ({best_category})",
         }
 
+    # Jika tidak ada match yang cukup baik, kembalikan hasil NOT_POLYESTER
     return {
         "classification": "NOT_POLYESTER",
         "material_type": "OTHER_MATERIAL",
@@ -324,28 +327,27 @@ def classify_material(
 ):
     """Main classification function - Support both signatures"""
 
-    # Convert to grayscale for analysis
     img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
 
-    # Extract features jika belum ada (backward compatibility)
+    # Ekstraksi fitur jika belum tersedia
     if color_features is None or texture_features is None or shape_features is None:
         color_features, _ = extract_color_features(img_rgb)
         texture_features, _ = extract_texture_features(img_gray)
         shape_features, _ = extract_shape_features(img_gray)
 
-    # Template matching (jika ada dataset)
+    # Lakukan template matching jika dataset template polyester tersedia
     template_result = None
     if polyester_templates and len(polyester_templates) > 0:
         template_result = template_matching_classification(img_rgb, polyester_templates)
 
-    # Rule-based classification
+    # Lakukan klasifikasi berbasis aturan (rule-based)
     rule_result = enhanced_rule_based_classification(
         color_features, texture_features, shape_features
     )
 
-    # Hybrid decision
+    # Keputusan hybrid: jika confidence template tinggi, gabungkan dengan rule-based
     if template_result and template_result.get("confidence", 0) > 60:
-        # High template confidence - combine both
+        # Confidence template tinggi - gabungkan confidence template dan rule-based
         final_confidence = (
             template_result["confidence"] * 0.6 + rule_result["confidence"] * 0.4
         )
@@ -356,7 +358,7 @@ def classify_material(
         )
         final_result["secondary_method"] = "RGB Color + LBP Texture + Contour Shape"
     else:
-        # Low template confidence or no templates - use rule-based
+        # Confidence template rendah atau tidak ada template - gunakan rule-based saja
         final_result = rule_result
         if template_result:
             final_result["template_info"] = (
