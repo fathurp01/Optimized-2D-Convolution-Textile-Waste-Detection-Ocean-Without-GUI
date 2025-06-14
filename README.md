@@ -86,10 +86,12 @@ TubesNoGUI/
 
 ### Library yang Digunakan (Sesuai Ketentuan):
 ```python
-import cv2              # OpenCV
-import numpy as np      # NumPy
-from skimage import feature  # scikit-image
-import os, sys         # Library bawaan Python
+import cv2              # OpenCV 
+import numpy as np      # NumPy 
+from skimage import feature  # scikit-image 
+import os, sys, io      # Library standar Python 
+from PIL import Image   # Pillow (hanya untuk konversi/penyimpanan)
+import matplotlib.pyplot as plt  # Matplotlib (hanya untuk visualisasi)
 ```
 
 ### Spesifikasi Citra:

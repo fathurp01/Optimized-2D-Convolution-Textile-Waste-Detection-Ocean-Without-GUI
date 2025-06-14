@@ -1,0 +1,36 @@
+=== POLYESTER DETECTION REPORT ===
+Classification: POLYESTER
+Material Type: POLYESTER
+Confidence: 100.00%
+Method: Enhanced Rule-based (Grayscale A9 + LBP + Contour H3)
+Score: 12/12
+
+Template Info: Template confidence too low: 21.1%
+
+=== CONFIDENCE INDICATORS ===
+[R02] Moderate contrast (synthetic material)
+[R03] Synthetic grayscale peak distribution
+[R04] Typical polyester brightness
+[R05] High texture uniformity (LBP)
+[R07] Low texture variation (synthetic)
+[R08] High texture contrast (synthetic)
+[R09] Reasonable fragment count
+[R10] Fragment-like circularity
+[R11] Solid material characteristic
+[R12] Significant material area
+
+=== PREPROCESSING APPLIED ===
+Methods: Manual Median Filter
+
+=== IMAGE CONDITION ANALYSIS ===
+Brightness: 100.0
+Contrast: 40.0
+Blur Score: 1130.4
+Edge Density: 0.108
+
+=== SPECIAL CONDITIONS DETECTED ===
+• Normal Conditions
+
+=== PREPROCESSING STEPS APPLIED ===
+- Median Filter
+- Gaussian Filter
